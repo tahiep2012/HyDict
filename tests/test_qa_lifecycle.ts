@@ -455,6 +455,15 @@ const snipperTsx = fs.readFileSync(path.resolve(process.cwd(), 'src/modules/scre
 assert(snipperTsx.includes('execute_screen_ocr'), '[Frontend UI] ScreenSnipper.tsx gọi lệnh execute_screen_ocr');
 assert(snipperTsx.includes('Escape') && snipperTsx.includes('onContextMenu'), '[Frontend UI] ScreenSnipper.tsx hỗ trợ phím Esc và click phải để hủy');
 
+// Kiểm thử đóng gói Portable Release đầy đủ các tệp DLL runtime phụ thuộc
+const distDir = path.resolve(process.cwd(), 'dist-release/HyDict-v2.0.0');
+if (fs.existsSync(distDir)) {
+  assert(fs.existsSync(path.join(distDir, 'HyDict.exe')), '[Portable Release] Tệp HyDict.exe tồn tại trong gói phát hành');
+  assert(fs.existsSync(path.join(distDir, 'libunwind.dll')), '[Portable Release] Tệp runtime libunwind.dll được đóng gói kèm HyDict.exe');
+  assert(fs.existsSync(path.join(distDir, 'WebView2Loader.dll')), '[Portable Release] Tệp runtime WebView2Loader.dll được đóng gói kèm HyDict.exe');
+  assert(fs.existsSync(path.join(distDir, 'dictionary.db')), '[Portable Release] Cơ sở dữ liệu dictionary.db được đóng gói kèm');
+}
+
 // -------------------------------------------------------------
 // TẦNG 3: FUNCTIONAL UI TESTS (ATOMIC COMPONENTS)
 // -------------------------------------------------------------
