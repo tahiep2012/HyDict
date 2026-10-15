@@ -1,5 +1,7 @@
 pub mod db;
 pub mod hotkey;
+pub mod ocr;
+pub mod screen_capture;
 pub mod segmentation;
 pub mod tts;
 pub mod window_hud;
@@ -258,15 +260,109 @@ fn open_main_window(app: tauri::AppHandle, word: Option<String>) {
     }
 }
 
+#[tauri::command]
+fn open_snipper_window(app: tauri::AppHandle) {
+    if let Some(snipper) = app.get_webview_window("snipper") {
+        let (vx, vy, vw, vh) = screen_capture::get_virtual_screen_bounds();
+        let _ = snipper.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x: vx, y: vy }));
+        let _ = snipper.set_size(tauri::Size::Physical(tauri::PhysicalSize {
+            width: (vw.max(800)) as u32,
+            height: (vh.max(600)) as u32,
+        }));
+        let _ = snipper.show();
+        let _ = snipper.unminimize();
+        let _ = snipper.set_always_on_top(true);
+        let _ = snipper.set_focus();
+        let _ = snipper.emit("snipper-opened", ());
+    }
+}
+
+#[tauri::command]
+fn hide_snipper_window(app: tauri::AppHandle) {
+    if let Some(snipper) = app.get_webview_window("snipper") {
+        let _ = snipper.hide();
+    }
+}
+
+#[tauri::command]
+fn execute_screen_ocr(
+    app: tauri::AppHandle,
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+) -> Result<String, String> {
+    // Ẩn snipper ngay lập tức để không che khuất màn hình
+    if let Some(snipper) = app.get_webview_window("snipper") {
+        let _ = snipper.hide();
+    }
+
+    if width < 5 || height < 5 {
+        return Err("Vùng chọn quá nhỏ (< 5px)".to_string());
+    }
+
+    // 1. Chụp chính xác vùng màn hình đã chọn
+    let capture = screen_capture::capture_screen_rect(x, y, width, height)?;
+
+    // 2. Nhận diện chữ Hán siêu tốc qua Windows Native OCR
+    let recognized = ocr::recognize_chinese_text(capture.width, capture.height, &capture.bgra)?;
+    let clean_text = recognized.trim().to_string();
+
+    // 3. Nếu tìm thấy chữ, tự động bật Lingoes HUD popup ngay tại vị trí kéo thả chuột
+    if !clean_text.is_empty() {
+        if let Some(hud_window) = app.get_webview_window("hud") {
+            let win_size = window_hud::Rect { width: 480, height: 560 };
+            let (screen_w, screen_h) = hud_window
+                .current_monitor()
+                .ok()
+                .flatten()
+                .map(|m| (m.size().width as i32, m.size().height as i32))
+                .unwrap_or((1920, 1080));
+            let screen_bounds = window_hud::Rect {
+                width: screen_w,
+                height: screen_h,
+            };
+            let clamped = window_hud::calculate_clamped_hud_position(
+                window_hud::Point { x, y: y + height as i32 },
+                win_size,
+                screen_bounds,
+            );
+
+            if let Ok(mut guard) = LAST_HUD_SHOW.lock() {
+                *guard = Some(Instant::now());
+            }
+
+            let _ = hud_window.set_position(tauri::Position::Physical(
+                tauri::PhysicalPosition { x: clamped.x, y: clamped.y },
+            ));
+            let _ = hud_window.show();
+            let _ = hud_window.unminimize();
+            let _ = hud_window.set_always_on_top(true);
+            let _ = hud_window.set_focus();
+        }
+
+        // Phát sự kiện tra cứu tức thì sang React HUD
+        let _ = app.emit("quick-lookup-triggered", clean_text.clone());
+    }
+
+    Ok(clean_text)
+}
+
 pub fn run() {
     let conn = db::init_db().expect("Failed to initialize dictionary database");
+    let alt_s_shortcut: Shortcut = "alt+s".parse().expect("valid alt+s shortcut");
 
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
-                .with_handler(|app, _shortcut, event| {
+                .with_handler(move |app, shortcut, event| {
                     if event.state == ShortcutState::Pressed {
+                        if shortcut == &alt_s_shortcut {
+                            open_snipper_window(app.clone());
+                            return;
+                        }
+
                         let app_handle = app.clone();
                         // Chạy toàn bộ luồng copy & hiển thị HUD trong background thread riêng
                         // Tuyệt đối không làm nghẽn Tauri Event Loop hoặc Windows Hook chain của VCKey/UniKey!
@@ -323,7 +419,7 @@ pub fn run() {
         )
         .setup(|app| {
             // Đăng ký phím tắt toàn cục một cách độc lập và an toàn (chống xung đột VCKey/UniKey/App khác)
-            for hotkey_str in ["alt+q", "ctrl+q", "shift+t"] {
+            for hotkey_str in ["alt+q", "ctrl+q", "shift+t", "alt+s"] {
                 if let Ok(shortcut) = hotkey_str.parse::<Shortcut>() {
                     let _ = app.global_shortcut().register(shortcut);
                 }
@@ -439,6 +535,9 @@ pub fn run() {
             hide_hud_window,
             set_hud_pinned,
             open_main_window,
+            open_snipper_window,
+            hide_snipper_window,
+            execute_screen_ocr,
             segmentation::segment_sentence,
             db::lookup_dictionary,
             db::search_suggestions,

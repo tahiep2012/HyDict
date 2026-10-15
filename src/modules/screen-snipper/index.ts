@@ -1,0 +1,1 @@
+export { ScreenSnipper } from './ScreenSnipper';

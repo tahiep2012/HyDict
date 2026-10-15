@@ -431,6 +431,29 @@ assert(libRsContent.includes('SendInput'), '[Clipboard Copy] Sử dụng SendInp
 assert(libRsContent.includes('HYDICT_EXTRA_INFO'), '[IME Compatibility] Gắn cờ HYDICT_EXTRA_INFO (0x11A011A0) chống xung đột bộ gõ VCKey/UniKey');
 assert(libRsContent.includes('std::thread::spawn'), '[Non-Blocking Hotkey] Xử lý phím tắt bất đồng bộ trong background thread tránh treo Windows LowLevelHook');
 
+// Kiểm thử Phase 4: Screen Capture OCR (EPIC-12)
+const snipperWindowConf = appWindows.find((w: any) => w.label === 'snipper');
+assert(snipperWindowConf !== undefined, '[Screen Snipper] Cửa sổ "snipper" được cấu hình trong tauri.conf.json');
+assert(snipperWindowConf?.url === 'index.html#snipper', '[Screen Snipper] Cửa sổ "snipper" trỏ đúng route "index.html#snipper"');
+assert(snipperWindowConf?.transparent === true, '[Screen Snipper] Cửa sổ "snipper" trong suốt (transparent: true)');
+assert(snipperWindowConf?.skipTaskbar === true, '[Screen Snipper] Cửa sổ "snipper" ẩn khỏi taskbar (skipTaskbar: true)');
+assert(capConf.windows.includes('snipper'), '[Capabilities] Cửa sổ "snipper" được cấp quyền trong capabilities/default.json');
+assert(appTsxContent.includes('#snipper') && appTsxContent.includes('ScreenSnipper'), '[App Router] App.tsx hỗ trợ điều hướng #snipper đến ScreenSnipper');
+
+const screenCaptureRs = fs.readFileSync(path.resolve(process.cwd(), 'src-tauri/src/screen_capture.rs'), 'utf-8');
+assert(screenCaptureRs.includes('CAPTUREBLT') && screenCaptureRs.includes('BitBlt'), '[OCR Backend] Tệp screen_capture.rs tồn tại và triển khai BitBlt với CAPTUREBLT');
+assert(screenCaptureRs.includes('WinSta0') && screenCaptureRs.includes('default'), '[OCR Backend] screen_capture.rs kết nối WinSta0 và Desktop default chống lỗi quyền hệ thống');
+
+const ocrRs = fs.readFileSync(path.resolve(process.cwd(), 'src-tauri/src/ocr.rs'), 'utf-8');
+assert(ocrRs.includes('OcrEngine') && ocrRs.includes('zh-Hans-CN'), '[OCR Backend] Tệp ocr.rs tồn tại và tích hợp Windows.Media.Ocr Native Engine');
+
+assert(libRsContent.includes('open_snipper_window') && libRsContent.includes('hide_snipper_window') && libRsContent.includes('execute_screen_ocr'), '[Rust Commands] Lệnh open_snipper_window, hide_snipper_window, execute_screen_ocr được đăng ký trong invoke_handler');
+assert(libRsContent.includes('alt+s'), '[Global Hotkey] Phím tắt Alt+S được đăng ký để kích hoạt Screen Snipper');
+
+const snipperTsx = fs.readFileSync(path.resolve(process.cwd(), 'src/modules/screen-snipper/ScreenSnipper.tsx'), 'utf-8');
+assert(snipperTsx.includes('execute_screen_ocr'), '[Frontend UI] ScreenSnipper.tsx gọi lệnh execute_screen_ocr');
+assert(snipperTsx.includes('Escape') && snipperTsx.includes('onContextMenu'), '[Frontend UI] ScreenSnipper.tsx hỗ trợ phím Esc và click phải để hủy');
+
 // -------------------------------------------------------------
 // TẦNG 3: FUNCTIONAL UI TESTS (ATOMIC COMPONENTS)
 // -------------------------------------------------------------

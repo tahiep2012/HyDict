@@ -6,7 +6,7 @@ import { HotkeyCaptureTab } from './HotkeyCaptureTab';
 import { AnkiConfigTab } from './AnkiConfigTab';
 import { SystemSettingsTab } from './SystemSettingsTab';
 import { SystemTrayModal } from './SystemTrayModal';
-import { BookOpen, Zap, Settings, Layers, ExternalLink, Sparkles, Bookmark } from 'lucide-react';
+import { BookOpen, Zap, Settings, Layers, ExternalLink, Sparkles, Bookmark, Crop } from 'lucide-react';
 import { NotebookTab } from '@/modules/notebook';
 
 export interface MainWindowLayoutProps {
@@ -18,6 +18,7 @@ export interface MainWindowLayoutProps {
   onSelectWord: (word: string) => void;
   onShowToast: (msg: string) => void;
   onOpenQuickHud: () => void;
+  onOpenSnipper?: () => void;
   isTrayModalOpen: boolean;
   onSetTrayModalOpen: (open: boolean) => void;
 }
@@ -31,6 +32,7 @@ export const MainWindowLayout: React.FC<MainWindowLayoutProps> = ({
   onSelectWord,
   onShowToast,
   onOpenQuickHud,
+  onOpenSnipper,
   isTrayModalOpen,
   onSetTrayModalOpen,
 }) => {
@@ -127,21 +129,30 @@ export const MainWindowLayout: React.FC<MainWindowLayoutProps> = ({
                 Sẵn sàng
               </span>
             </div>
-            <div className="text-[11px] text-slate-500">
-              Phím tắt:{' '}
-              <kbd className="bg-slate-100 px-1 py-0.5 rounded font-mono text-blue-600 font-bold">
-                {settings.globalHotkey}
-              </kbd>
+            <div className="text-[11px] text-slate-500 flex flex-col gap-1">
+              <div>Bắt từ: <kbd className="bg-slate-100 px-1 py-0.5 rounded font-mono text-blue-600 font-bold">{settings.globalHotkey}</kbd></div>
+              <div>Chụp OCR: <kbd className="bg-slate-100 px-1 py-0.5 rounded font-mono text-emerald-600 font-bold">Alt + S</kbd></div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onOpenQuickHud}
-              className="w-full text-center text-[11px] py-1 h-auto"
-            >
-              <ExternalLink className="w-3 h-3 mr-1" />
-              Thử mở Quick HUD
-            </Button>
+            <div className="flex flex-col gap-1.5 pt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onOpenQuickHud}
+                className="w-full text-center text-[11px] py-1 h-auto"
+              >
+                <ExternalLink className="w-3 h-3 mr-1" />
+                Mở nhanh Quick HUD
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onOpenSnipper}
+                className="w-full text-center text-[11px] py-1 h-auto text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100/50 border-emerald-200"
+              >
+                <Crop className="w-3 h-3 mr-1 text-emerald-600" />
+                Chụp OCR màn hình
+              </Button>
+            </div>
           </div>
 
           <button

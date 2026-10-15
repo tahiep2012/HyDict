@@ -37,7 +37,7 @@ Hanzii Dict Desktop là ứng dụng từ điển tiếng Trung thông minh ch�
 | `EPIC-09` | **Tô Màu Thanh Điệu Pinyin & Huy Hiệu HSK 1 - 6** | P1 (Quan trọng) | `docs/specs/features/09-tone-and-hsk/` | `COMPLETED` |
 | `EPIC-10` | **Sổ Tay Từ Yêu Thích ⭐ & Lịch Sử Tra Cứu** | P1 (Quan trọng) | `docs/specs/features/10-favorites-history/` | `COMPLETED` |
 | `EPIC-11` | **Tra Cứu Ngược Việt - Trung & Pinyin Không Dấu** | P1 (Quan trọng) | `docs/specs/features/11-reverse-search/` | `COMPLETED` |
-| `EPIC-12` | **Chụp Màn Hình Nhận Diện Chữ Hán (Screen Capture OCR)** | P1 (Vũ khí cạnh tranh) | `docs/specs/features/12-screen-ocr/` | `READY_FOR_DEV` |
+| `EPIC-12` | **Chụp Màn Hình Nhận Diện Chữ Hán (Screen Capture OCR)** | P1 (Vũ khí cạnh tranh) | `docs/specs/features/12-screen-ocr/` | `COMPLETED` |
 
 ---
 

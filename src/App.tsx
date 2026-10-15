@@ -11,6 +11,7 @@ import {
 } from '@/modules/popup-hud';
 import { useAudioPlayback } from '@/modules/tts-audio';
 import { useNotebook } from '@/modules/notebook';
+import { ScreenSnipper } from '@/modules/screen-snipper';
 
 // ============================================================================
 // 1. STANDALONE HUD WINDOW (Cửa sổ Quick Lookup mini độc lập chuẩn Lingoes)
@@ -371,6 +372,16 @@ const MainWindowApp: React.FC = () => {
     }
   };
 
+  const handleOpenSnipper = () => {
+    if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
+      import('@tauri-apps/api/core')
+        .then(({ invoke }) => invoke('open_snipper_window'))
+        .catch(() => {});
+    } else {
+      showToast('⚡ Chế độ Desktop: Kích hoạt Snipper qua phím tắt Alt + S');
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-slate-100 font-sans antialiased select-none">
       <MainWindowLayout
@@ -382,6 +393,7 @@ const MainWindowApp: React.FC = () => {
         onSelectWord={handleSelectMainWord}
         onShowToast={showToast}
         onOpenQuickHud={handleOpenQuickHud}
+        onOpenSnipper={handleOpenSnipper}
         isTrayModalOpen={isTrayModalOpen}
         onSetTrayModalOpen={setIsTrayModalOpen}
       />
@@ -405,6 +417,14 @@ export const App: React.FC = () => {
 
   if (isHudRoute) {
     return <StandaloneHudApp />;
+  }
+
+  const isSnipperRoute =
+    typeof window !== 'undefined' &&
+    (window.location.hash === '#snipper' || window.location.href.includes('#snipper'));
+
+  if (isSnipperRoute) {
+    return <ScreenSnipper />;
   }
 
   return <MainWindowApp />;
