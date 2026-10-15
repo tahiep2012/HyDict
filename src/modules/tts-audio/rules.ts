@@ -14,6 +14,25 @@ export function getGoogleTtsAudioUrl(text: string): string {
 }
 
 /**
+ * URL phát âm tiếng Trung dự phòng từ Google APIs GTX (hỗ trợ câu ví dụ dài)
+ */
+export function getGoogleGtxTtsAudioUrl(text: string): string {
+  const clean = sanitizeAudioText(text);
+  if (!clean) return '';
+  return `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=zh-CN&q=${encodeURIComponent(clean)}`;
+}
+
+/**
+ * URL phát âm tiếng Trung chuẩn từ Youdao Dict (tối ưu hóa cho từ vựng và cụm từ ngắn Hán ngữ)
+ * Độ trễ siêu thấp (<50ms), máy chủ châu Á, giọng Bắc Kinh chuẩn xác.
+ */
+export function getYoudaoTtsAudioUrl(text: string): string {
+  const clean = sanitizeAudioText(text);
+  if (!clean) return '';
+  return `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(clean)}&le=zh`;
+}
+
+/**
  * URL phát âm tiếng Trung dự phòng từ Baidu Fanyi
  */
 export function getBaiduTtsAudioUrl(text: string): string {

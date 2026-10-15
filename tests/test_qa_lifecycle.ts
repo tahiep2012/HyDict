@@ -246,6 +246,8 @@ assert(yeCompounds.length > 0 && yeCompounds.some((c) => c.word === '页面'), '
 import {
   sanitizeAudioText,
   getGoogleTtsAudioUrl,
+  getGoogleGtxTtsAudioUrl,
+  getYoudaoTtsAudioUrl,
   getBaiduTtsAudioUrl,
   buildAzureSsml,
 } from '../src/modules/tts-audio';
@@ -253,8 +255,17 @@ import { isSingleChineseChar } from '../src/modules/stroke-writer';
 
 assert(sanitizeAudioText('  万  ') === '万', 'Làm sạch chuỗi âm thanh trước khi phát');
 assert(getGoogleTtsAudioUrl('你好').includes('translate.google.com') && getGoogleTtsAudioUrl('你好').includes('tl=zh-CN'), '[TTS Engine] Tạo URL Google Translate TTS chuẩn');
+assert(getGoogleGtxTtsAudioUrl('你好').includes('translate.googleapis.com') && getGoogleGtxTtsAudioUrl('你好').includes('client=gtx'), '[TTS Engine] Tạo URL Google GTX TTS dự phòng');
+assert(getYoudaoTtsAudioUrl('你好').includes('dict.youdao.com/dictvoice') && getYoudaoTtsAudioUrl('你好').includes('le=zh'), '[TTS Engine] Tạo URL Youdao Dict TTS chuyên Hán ngữ');
 assert(getBaiduTtsAudioUrl('你好').includes('fanyi.baidu.com') && getBaiduTtsAudioUrl('你好').includes('lan=zh'), '[TTS Engine] Tạo URL Baidu Fanyi TTS dự phòng');
 assert(buildAzureSsml('你好', 'zh-CN-XiaoxiaoNeural').includes('zh-CN-XiaoxiaoNeural'), '[TTS Engine] Tạo SSML Azure Neural Voices chuẩn');
+
+// Kiểm tra chống chặn Hotlinking (Referrer Policy)
+const indexHtmlContent = fs.readFileSync(path.resolve(process.cwd(), 'index.html'), 'utf-8');
+assert(indexHtmlContent.includes('<meta name="referrer" content="no-referrer"'), '[TTS Anti-Hotlinking] index.html chứa no-referrer meta tag');
+const audioHookContent = fs.readFileSync(path.resolve(process.cwd(), 'src/modules/tts-audio/hooks/useAudioPlayback.ts'), 'utf-8');
+assert(audioHookContent.includes(".referrerPolicy = 'no-referrer'"), '[TTS Anti-Hotlinking] useAudioPlayback thiết lập tường minh no-referrer');
+
 assert(isSingleChineseChar('万') === true, 'Ký tự "万" là chữ Hán đơn hợp lệ');
 assert(isSingleChineseChar('书') === true, 'Ký tự "书" là chữ Hán đơn hợp lệ');
 assert(isSingleChineseChar('这本书') === false, 'Cụm từ "这本书" không phải chữ Hán đơn');

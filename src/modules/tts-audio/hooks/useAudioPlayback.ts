@@ -2,6 +2,8 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   sanitizeAudioText,
   getGoogleTtsAudioUrl,
+  getGoogleGtxTtsAudioUrl,
+  getYoudaoTtsAudioUrl,
   getBaiduTtsAudioUrl,
   buildAzureSsml,
   isSpeechSynthesisSupported,
@@ -32,6 +34,8 @@ export function useAudioPlayback() {
 
   const stopAudio = useCallback(() => {
     if (audioRef.current) {
+      audioRef.current.onended = null;
+      audioRef.current.onerror = null;
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       audioRef.current = null;
@@ -71,6 +75,27 @@ export function useAudioPlayback() {
         options?.onError?.(err);
       };
 
+      // Chuẩn bị danh sách URL phát âm dự phòng đa tầng (Multi-tier fallback)
+      const candidateUrls: string[] = [];
+
+      // Tầng 1: Google Translate TTS Native (Chất lượng cao, hỗ trợ cả câu dài và từ đơn)
+      const googleUrl = getGoogleTtsAudioUrl(cleanText);
+      if (googleUrl) candidateUrls.push(googleUrl);
+
+      // Tầng 2: Nếu là từ đơn hoặc cụm từ ngắn (<= 12 ký tự): Youdao Dict TTS là lựa chọn hoàn hảo
+      if (cleanText.length <= 12) {
+        const youdaoUrl = getYoudaoTtsAudioUrl(cleanText);
+        if (youdaoUrl) candidateUrls.push(youdaoUrl);
+      }
+
+      // Tầng 3: Google APIs GTX (Dự phòng cho câu dài)
+      const gtxUrl = getGoogleGtxTtsAudioUrl(cleanText);
+      if (gtxUrl) candidateUrls.push(gtxUrl);
+
+      // Tầng 4: Baidu Fanyi TTS (Dự phòng tiếp theo)
+      const baiduUrl = getBaiduTtsAudioUrl(cleanText);
+      if (baiduUrl) candidateUrls.push(baiduUrl);
+
       // 2. Kiểm tra nếu có Azure Speech Key được lưu trong localStorage
       try {
         const rawAzure = localStorage.getItem('hanzii_azure_speech');
@@ -106,13 +131,13 @@ export function useAudioPlayback() {
                 };
                 audio.onerror = () => {
                   URL.revokeObjectURL(blobUrl);
-                  fallbackToGoogle(audioRef, cleanText, handleEnded, handleFinalError);
+                  playCandidateStreams(audioRef, candidateUrls, 0, cleanText, handleEnded, handleFinalError);
                 };
                 await audio.play();
                 return;
               }
             } catch {
-              // Nếu Azure lỗi kết nối, tự động chuyển tiếp sang Google TTS
+              // Nếu Azure lỗi kết nối, tự động chuyển tiếp sang luồng dự phòng
             }
           }
         }
@@ -120,8 +145,8 @@ export function useAudioPlayback() {
         // bỏ qua lỗi đọc localStorage
       }
 
-      // 3. Tầng Chính (Default): Google Translate Native TTS (Không cần API Key, siêu nét)
-      fallbackToGoogle(audioRef, cleanText, handleEnded, handleFinalError);
+      // 3. Tầng Chính & Dự phòng trực tuyến không cần API Key
+      playCandidateStreams(audioRef, candidateUrls, 0, cleanText, handleEnded, handleFinalError);
     },
     [stopAudio]
   );
@@ -134,59 +159,58 @@ export function useAudioPlayback() {
   };
 }
 
-function fallbackToGoogle(
+/**
+ * Phát âm thanh tuần tự qua các nguồn máy chủ trực tuyến với cơ chế chặn gửi Referer (no-referrer)
+ */
+function playCandidateStreams(
   audioRef: React.MutableRefObject<HTMLAudioElement | null>,
+  urls: string[],
+  index: number,
   cleanText: string,
   onEnd: () => void,
   onError: (err?: any) => void
 ) {
-  try {
-    const googleUrl = getGoogleTtsAudioUrl(cleanText);
-    const audio = new Audio(googleUrl);
-    audioRef.current = audio;
-
-    audio.onended = () => {
-      onEnd();
-    };
-
-    audio.onerror = () => {
-      // 4. Tầng Dự phòng 2: Baidu Fanyi TTS
-      fallbackToBaidu(audioRef, cleanText, onEnd, onError);
-    };
-
-    audio.play().catch(() => {
-      fallbackToBaidu(audioRef, cleanText, onEnd, onError);
-    });
-  } catch {
-    fallbackToBaidu(audioRef, cleanText, onEnd, onError);
-  }
-}
-
-function fallbackToBaidu(
-  audioRef: React.MutableRefObject<HTMLAudioElement | null>,
-  cleanText: string,
-  onEnd: () => void,
-  onError: (err?: any) => void
-) {
-  try {
-    const baiduUrl = getBaiduTtsAudioUrl(cleanText);
-    const audio = new Audio(baiduUrl);
-    audioRef.current = audio;
-
-    audio.onended = () => {
-      onEnd();
-    };
-
-    audio.onerror = () => {
-      // 5. Tầng Dự phòng 3: Web Speech API (nếu máy có cài gói giọng Windows)
-      fallbackToSpeechSynthesis(cleanText, onEnd, onError);
-    };
-
-    audio.play().catch(() => {
-      fallbackToSpeechSynthesis(cleanText, onEnd, onError);
-    });
-  } catch {
+  if (index >= urls.length) {
+    // Nếu tất cả các URL trực tuyến đều lỗi -> Thử Web Speech API cục bộ
     fallbackToSpeechSynthesis(cleanText, onEnd, onError);
+    return;
+  }
+
+  const currentUrl = urls[index];
+  try {
+    const audio = new Audio();
+    // BẮT BUỘC: Thiết lập no-referrer để không bị Google/Baidu chặn lỗi 404 do hotlinking
+    (audio as any).referrerPolicy = 'no-referrer';
+    audio.setAttribute('referrerpolicy', 'no-referrer');
+    audio.src = currentUrl;
+    audioRef.current = audio;
+
+    let hasAdvanced = false;
+    const advanceNext = () => {
+      if (!hasAdvanced) {
+        hasAdvanced = true;
+        // Chỉ chuyển tiếp nếu audioRef vẫn đang là bản ghi này (chưa bị dừng hoặc chuyển từ khác)
+        if (audioRef.current === audio) {
+          playCandidateStreams(audioRef, urls, index + 1, cleanText, onEnd, onError);
+        }
+      }
+    };
+
+    audio.onended = () => {
+      if (audioRef.current === audio) {
+        onEnd();
+      }
+    };
+
+    audio.onerror = () => {
+      advanceNext();
+    };
+
+    audio.play().catch(() => {
+      advanceNext();
+    });
+  } catch {
+    playCandidateStreams(audioRef, urls, index + 1, cleanText, onEnd, onError);
   }
 }
 
