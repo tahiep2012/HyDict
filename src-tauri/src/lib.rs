@@ -334,17 +334,20 @@ pub fn run() {
             let quit_i = MenuItem::with_id(app, "quit", "Thoát HyDict", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
 
-            // Khởi tạo Tray Icon an toàn (ưu tiên default_window_icon, fallback embedded 32x32.png)
-            let icon = match app.default_window_icon() {
-                Some(i) => i.clone(),
-                None => {
-                    let bytes = include_bytes!("../icons/32x32.png");
-                    tauri::image::Image::from_bytes(bytes).expect("valid embedded icon")
-                }
-            };
+            // Khởi tạo icon chuẩn từ biểu tượng mới (nhúng trực tiếp 128x128.png)
+            let icon_bytes = include_bytes!("../icons/128x128.png");
+            let app_icon = tauri::image::Image::from_bytes(icon_bytes).expect("valid embedded icon");
+
+            // Đặt biểu tượng trực tiếp cho cửa sổ chính và cửa sổ HUD
+            if let Some(main_window) = app.get_webview_window("main") {
+                let _ = main_window.set_icon(app_icon.clone());
+            }
+            if let Some(hud_window) = app.get_webview_window("hud") {
+                let _ = hud_window.set_icon(app_icon.clone());
+            }
 
             let tray = TrayIconBuilder::with_id("main-tray")
-                .icon(icon)
+                .icon(app_icon)
                 .menu(&menu)
                 .show_menu_on_left_click(false)
                 .tooltip("HyDict - Tra cứu thông minh")
