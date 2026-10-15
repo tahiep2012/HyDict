@@ -2,6 +2,7 @@ export * from './types';
 export * from './rules';
 export * from './rules/pinyinTone';
 export * from './rules/hskClassifier';
+export * from './rules/queryClassifier';
 export * from './components/DefinitionCard';
 export * from './components/ExampleList';
 export * from './components/ToneColoredPinyin';

@@ -1,10 +1,26 @@
 import { useState, useEffect } from 'react';
-import { DictionaryEntry, LookupStatus } from '../types';
-import { queryLocalDictionary } from '../rules';
+import { DictionaryEntry, LookupStatus, SearchClassificationResult } from '../types';
+import { queryLocalDictionary, queryLocalDictionaryMulti } from '../rules';
+import { classifySearchQuery } from '../rules/queryClassifier';
 
-export function useDictionaryLookup(initialWord: string = '') {
+export interface UseDictionaryLookupReturn {
+  word: string;
+  setWord: (w: string) => void;
+  entry: DictionaryEntry | null;
+  multiResults: DictionaryEntry[];
+  classification: SearchClassificationResult;
+  status: LookupStatus;
+  lookup: (w: string) => void;
+  selectEntry: (entry: DictionaryEntry) => void;
+}
+
+export function useDictionaryLookup(initialWord: string = ''): UseDictionaryLookupReturn {
   const [word, setWord] = useState(initialWord);
   const [entry, setEntry] = useState<DictionaryEntry | null>(null);
+  const [multiResults, setMultiResults] = useState<DictionaryEntry[]>([]);
+  const [classification, setClassification] = useState<SearchClassificationResult>(() =>
+    classifySearchQuery(initialWord)
+  );
   const [status, setStatus] = useState<LookupStatus>('idle');
 
   useEffect(() => {
@@ -16,61 +32,101 @@ export function useDictionaryLookup(initialWord: string = '') {
   useEffect(() => {
     if (!word || word.trim() === '') {
       setEntry(null);
+      setMultiResults([]);
       setStatus('idle');
       return;
     }
 
+    const currentClass = classifySearchQuery(word);
+    setClassification(currentClass);
     setStatus('loading');
 
-    // Thử gọi Tauri command nếu đang chạy trong môi trường Desktop
+    // Môi trường Desktop Tauri
     if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
       import('@tauri-apps/api/core')
         .then(({ invoke }) => {
-          return invoke<DictionaryEntry | null>('lookup_dictionary', { word });
+          return invoke<DictionaryEntry[]>('search_dictionary_multi', {
+            query: word,
+            queryType: currentClass.type,
+          });
         })
-        .then((result) => {
-          if (result) {
-            setEntry(result);
+        .then((results) => {
+          if (results && results.length > 0) {
+            setMultiResults(results);
+            setEntry(results[0]);
             setStatus('success');
           } else {
-            // Thử fallback local
-            const fallback = queryLocalDictionary(word);
-            if (fallback) {
-              setEntry(fallback);
+            // Thử fallback trực tiếp lookup_dictionary
+            return import('@tauri-apps/api/core').then(({ invoke }) =>
+              invoke<DictionaryEntry | null>('lookup_dictionary', { word })
+            );
+          }
+        })
+        .then((singleFallback) => {
+          if (singleFallback) {
+            setMultiResults([singleFallback]);
+            setEntry(singleFallback);
+            setStatus('success');
+          } else if (status !== 'success') {
+            // Fallback in-memory/mock
+            const fallbackResults = queryLocalDictionaryMulti(word, currentClass.type);
+            if (fallbackResults.length > 0) {
+              setMultiResults(fallbackResults);
+              setEntry(fallbackResults[0]);
               setStatus('success');
             } else {
               setEntry(null);
+              setMultiResults([]);
               setStatus('not_found');
             }
           }
         })
         .catch(() => {
-          const fallback = queryLocalDictionary(word);
-          if (fallback) {
-            setEntry(fallback);
+          const fallbackResults = queryLocalDictionaryMulti(word, currentClass.type);
+          if (fallbackResults.length > 0) {
+            setMultiResults(fallbackResults);
+            setEntry(fallbackResults[0]);
             setStatus('success');
           } else {
+            setEntry(null);
+            setMultiResults([]);
             setStatus('not_found');
           }
         });
     } else {
-      // Môi trường Web / Mock / Test
-      const result = queryLocalDictionary(word);
-      if (result) {
-        setEntry(result);
+      // Môi trường Web / Test / Mock
+      const fallbackResults = queryLocalDictionaryMulti(word, currentClass.type);
+      if (fallbackResults.length > 0) {
+        setMultiResults(fallbackResults);
+        setEntry(fallbackResults[0]);
         setStatus('success');
       } else {
-        setEntry(null);
-        setStatus('not_found');
+        const single = queryLocalDictionary(word);
+        if (single) {
+          setMultiResults([single]);
+          setEntry(single);
+          setStatus('success');
+        } else {
+          setEntry(null);
+          setMultiResults([]);
+          setStatus('not_found');
+        }
       }
     }
   }, [word]);
+
+  const selectEntry = (selected: DictionaryEntry) => {
+    setEntry(selected);
+  };
 
   return {
     word,
     setWord,
     entry,
+    multiResults,
+    classification,
     status,
     lookup: (w: string) => setWord(w),
+    selectEntry,
   };
 }

@@ -186,6 +186,33 @@ assert(getHskLevel('万') === 'HSK 3', '[HSK] Chữ "万" thuộc cấp độ HS
 assert(getHskLevel('报销') === 'HSK 6', '[HSK] Từ "报销" thuộc cấp độ HSK 6');
 assert(getHskLevel('仁泽坊') === null, '[HSK] Địa danh không thuộc HSK trả về null');
 
+// Tests cho phân hệ EPIC-11: Tra cứu đa chiều (Reverse Vietnamese & Pinyin Tone-free)
+import { classifySearchQuery, stripPinyinTones, queryLocalDictionaryMulti } from '../src/modules/dictionary';
+
+// 1. Phân loại Query
+assert(classifySearchQuery('万里长城').type === 'chinese', '[EPIC-11] Nhận diện đúng chữ Hán "万里长城"');
+assert(classifySearchQuery('学习').type === 'chinese', '[EPIC-11] Nhận diện đúng chữ Hán "学习"');
+assert(classifySearchQuery('gongzuo').type === 'pinyin', '[EPIC-11] Nhận diện đúng Pinyin không dấu "gongzuo"');
+assert(classifySearchQuery('nihao').type === 'pinyin', '[EPIC-11] Nhận diện đúng Pinyin không dấu "nihao"');
+assert(classifySearchQuery('ni hao').type === 'pinyin', '[EPIC-11] Nhận diện đúng Pinyin có khoảng trắng "ni hao"');
+assert(classifySearchQuery('bảo hiểm').type === 'vietnamese', '[EPIC-11] Nhận diện đúng tiếng Việt có dấu "bảo hiểm"');
+assert(classifySearchQuery('sa thải').type === 'vietnamese', '[EPIC-11] Nhận diện đúng tiếng Việt có dấu "sa thải"');
+assert(classifySearchQuery('sa thai').type === 'vietnamese', '[EPIC-11] Nhận diện đúng tiếng Việt không dấu "sa thai"');
+
+// 2. Chuẩn hóa Tone-free Pinyin
+assert(stripPinyinTones('bào xiāo') === 'baoxiao', '[EPIC-11] Loại bỏ thanh điệu "bào xiāo" thành "baoxiao"');
+assert(stripPinyinTones('[ nǐ hǎo ]') === 'nihao', '[EPIC-11] Loại bỏ ngoặc và thanh điệu "[ nǐ hǎo ]" thành "nihao"');
+
+// 3. Tra cứu đa chiều
+const resultsViet = queryLocalDictionaryMulti('bảo hiểm', 'vietnamese');
+assert(resultsViet.length > 0 && resultsViet[0].simplified === '保险', '[EPIC-11] Tra cứu ngược "bảo hiểm" ra từ "保险"');
+
+const resultsPinyin = queryLocalDictionaryMulti('gongzuo', 'pinyin');
+assert(resultsPinyin.length > 0 && resultsPinyin[0].simplified === '工作', '[EPIC-11] Tra cứu Pinyin "gongzuo" ra từ "工作"');
+
+const resultsPinyinNihao = queryLocalDictionaryMulti('nihao', 'pinyin');
+assert(resultsPinyinNihao.length > 0 && resultsPinyinNihao[0].simplified === '你好', '[EPIC-11] Tra cứu Pinyin "nihao" ra từ "你好"');
+
 // Tests cho module 04-popup-hud
 import { calculateClampedPosition } from '../src/modules/popup-hud';
 

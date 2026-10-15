@@ -439,6 +439,7 @@ pub fn run() {
             segmentation::segment_sentence,
             db::lookup_dictionary,
             db::search_suggestions,
+            db::search_dictionary_multi,
             tts::get_audio_cache_path
         ])
         .build(tauri::generate_context!())

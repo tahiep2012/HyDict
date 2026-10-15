@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDictionaryLookup } from '@/modules/dictionary';
 import { useAudioPlayback } from '@/modules/tts-audio';
 import { AddToAnkiButton } from '@/modules/anki-bridge';
 import { BookmarkButton } from '@/modules/notebook';
 import { HanziWriterCanvas } from '@/modules/stroke-writer';
 import { Button, Card, Badge } from '@/components/ui';
-import { Search, Volume2, Sparkles, Clock } from 'lucide-react';
+import { Search, Volume2, Sparkles, Clock, Globe, BookOpen, Layers } from 'lucide-react';
 
 export interface DictLookupTabProps {
   initialQuery?: string;
@@ -21,62 +21,233 @@ export const DictLookupTab: React.FC<DictLookupTabProps> = ({
   onShowToast,
 }) => {
   const [searchInput, setSearchInput] = useState(initialQuery);
-  const { entry, lookup, status } = useDictionaryLookup(initialQuery);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  const { entry, lookup, status, multiResults, classification, selectEntry } =
+    useDictionaryLookup(initialQuery);
   const isLoading = status === 'loading';
   const { playAudio } = useAudioPlayback();
+
+  // Auto-suggestions khi gõ từ khóa
+  useEffect(() => {
+    const query = searchInput.trim();
+    if (query.length < 1) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
+        import('@tauri-apps/api/core')
+          .then(({ invoke }) => {
+            invoke<string[]>('search_suggestions', { query })
+              .then((suggs) => {
+                if (suggs && suggs.length > 0) {
+                  setSuggestions(suggs);
+                } else {
+                  setSuggestions([]);
+                }
+              })
+              .catch(() => setSuggestions([]));
+          })
+          .catch(() => setSuggestions([]));
+      }
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Đóng suggestions khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchInput.trim()) return;
+    setShowSuggestions(false);
     lookup(searchInput.trim());
     onSelectWord(searchInput.trim());
     playAudio(searchInput.trim());
   };
 
+  const handleSelectSuggestion = (suggestedWord: string) => {
+    setSearchInput(suggestedWord);
+    setShowSuggestions(false);
+    lookup(suggestedWord);
+    onSelectWord(suggestedWord);
+    playAudio(suggestedWord);
+  };
+
   const handleQuickWord = (word: string) => {
     setSearchInput(word);
+    setShowSuggestions(false);
     lookup(word);
     onSelectWord(word);
     playAudio(word);
+  };
+
+  const getSourceBadge = () => {
+    if (classification.type === 'vietnamese') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+          <Globe className="w-3 h-3 text-emerald-600" />
+          Khớp nghĩa tiếng Việt
+        </span>
+      );
+    }
+    if (classification.type === 'pinyin') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+          <Layers className="w-3 h-3 text-amber-600" />
+          Khớp Pinyin không dấu
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+        <BookOpen className="w-3 h-3 text-blue-600" />
+        Khớp Hán tự
+      </span>
+    );
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
         <div>
-          <h2 className="text-lg font-bold text-slate-800">Tra Cứu Từ Điển Chuyên Sâu</h2>
+          <h2 className="text-lg font-bold text-slate-800">Tra Cứu Từ Điển Đa Chiều</h2>
           <p className="text-xs text-slate-500">
-            Tìm kiếm theo Hán tự, Pinyin hoặc nghĩa tiếng Việt trên kho từ SQLite FTS5
+            Hỗ trợ tra chữ Hán, Pinyin không dấu (vd: <i>gongzuo</i>), và tra ngược tiếng Việt (vd: <i>bảo hiểm</i>, <i>sa thải</i>)
           </p>
         </div>
-        <Badge variant="primary" size="md">
-          120,000+ từ vựng
-        </Badge>
+        <div className="flex items-center gap-2">
+          {getSourceBadge()}
+          <Badge variant="primary" size="md">
+            122,500+ từ vựng
+          </Badge>
+        </div>
       </div>
 
-      {/* Search Input Bar */}
-      <form onSubmit={handleSearch} className="relative">
-        <input
-          type="text"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Nhập chữ Hán (万, 学习), Pinyin (wan4), hoặc tiếng Việt..."
-          className="w-full pl-11 pr-28 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-        />
-        <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5" />
-        <Button
-          type="submit"
-          variant="primary"
-          size="sm"
-          className="absolute right-2 top-2 rounded-xl"
-        >
-          Tra Cứu
-        </Button>
-      </form>
+      {/* Search Input Bar with Auto-suggestions */}
+      <div className="relative" ref={suggestionsRef}>
+        <form onSubmit={handleSearch} className="relative">
+          <input
+            type="text"
+            value={searchInput}
+            onFocus={() => {
+              if (suggestions.length > 0) setShowSuggestions(true);
+            }}
+            onChange={(e) => {
+              setSearchInput(e.target.value);
+              setShowSuggestions(true);
+            }}
+            placeholder="Nhập chữ Hán (学习), Pinyin không dấu (gongzuo), hoặc tiếng Việt (bảo hiểm)..."
+            className="w-full pl-11 pr-28 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-xs"
+          />
+          <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5" />
+          <Button
+            type="submit"
+            variant="primary"
+            size="sm"
+            className="absolute right-2 top-2 rounded-xl"
+          >
+            Tra Cứu
+          </Button>
+        </form>
+
+        {/* Suggestions dropdown */}
+        {showSuggestions && suggestions.length > 0 && (
+          <div className="absolute z-20 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden py-1">
+            <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+              Gợi ý từ khóa phù hợp:
+            </div>
+            {suggestions.map((item, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleSelectSuggestion(item)}
+                className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-hanzi font-medium flex items-center justify-between transition-colors"
+              >
+                <span>{item}</span>
+                <span className="text-xs text-slate-400 font-sans">Chọn để tra cứu &rarr;</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Multi-result candidate selection list (Tra ngược / Pinyin) */}
+      {multiResults.length > 1 && (
+        <div className="space-y-2 bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/80">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-bold text-slate-700">
+              Tìm thấy {multiResults.length} từ vựng phù hợp:
+            </span>
+            <span className="text-[11px] font-semibold text-blue-600">
+              Click vào thẻ để xem chi tiết
+            </span>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+            {multiResults.map((item, idx) => {
+              const isSelected = entry?.simplified === item.simplified;
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    selectEntry(item);
+                    playAudio(item.simplified);
+                  }}
+                  className={`flex-shrink-0 px-3.5 py-2.5 rounded-xl border text-left transition-all ${
+                    isSelected
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs ring-2 ring-blue-200'
+                      : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`font-black font-hanzi text-base ${
+                        isSelected ? 'text-white' : 'text-slate-900'
+                      }`}
+                    >
+                      {item.simplified}
+                    </span>
+                    <span
+                      className={`text-[11px] font-medium px-1.5 py-0.5 rounded ${
+                        isSelected
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-amber-50 text-amber-700 border border-amber-200/60'
+                      }`}
+                    >
+                      {item.pinyin}
+                    </span>
+                  </div>
+                  <div
+                    className={`text-[11px] line-clamp-1 max-w-[210px] mt-1 font-medium ${
+                      isSelected ? 'text-blue-100' : 'text-slate-500'
+                    }`}
+                  >
+                    {item.definitions[0] || item.hanViet}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Result Display */}
       {isLoading ? (
-        <div className="p-8 text-center text-sm text-slate-400">Đang tìm kiếm...</div>
+        <div className="p-12 text-center text-sm text-slate-400">Đang tìm kiếm trong kho 122,500+ từ vựng...</div>
       ) : entry ? (
         <Card variant="default" rounded="2xl" className="p-5 space-y-4 border border-slate-200">
           <div className="flex items-start justify-between">
@@ -97,16 +268,18 @@ export const DictLookupTab: React.FC<DictLookupTabProps> = ({
                   {entry.pinyin}
                 </Badge>
                 <Badge variant="primary" size="sm">
-                  Hán Việt: {entry.hanViet}
+                  {entry.hanViet}
                 </Badge>
-                <Badge variant="purple" size="sm">
-                  {entry.pos}
-                </Badge>
+                {entry.pos && (
+                  <Badge variant="purple" size="sm">
+                    {entry.pos}
+                  </Badge>
+                )}
                 <button
                   type="button"
                   onClick={() => playAudio(entry.simplified)}
-                  className="p-1 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-100 transition-colors"
-                  title="Phát âm"
+                  className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-100 transition-colors"
+                  title="Phát âm chữ Hán"
                 >
                   <Volume2 className="w-4 h-4" />
                 </button>
@@ -195,7 +368,7 @@ export const DictLookupTab: React.FC<DictLookupTabProps> = ({
         </Card>
       ) : (
         <div className="p-8 text-center text-sm text-slate-400">
-          Không tìm thấy từ vựng. Vui lòng thử từ khác.
+          Không tìm thấy từ vựng phù hợp với từ khóa &ldquo;{searchInput}&rdquo;. Vui lòng thử từ khác.
         </div>
       )}
 

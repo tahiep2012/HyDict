@@ -50,6 +50,10 @@ pub fn init_db() -> Result<Connection> {
                 rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE | rusqlite::OpenFlags::SQLITE_OPEN_CREATE,
             )?;
             let _ = conn.execute_batch("PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;");
+            let _ = conn.execute_batch("
+                CREATE INDEX IF NOT EXISTS idx_pinyin_clean ON dictionary_entries(pinyin_clean);
+                CREATE INDEX IF NOT EXISTS idx_pinyin_flat ON dictionary_entries(pinyin_flat);
+            ");
             return Ok(conn);
         }
     }
@@ -64,6 +68,8 @@ pub fn init_db() -> Result<Connection> {
             simplified TEXT NOT NULL UNIQUE,
             traditional TEXT,
             pinyin TEXT NOT NULL,
+            pinyin_clean TEXT,
+            pinyin_flat TEXT,
             han_viet TEXT NOT NULL,
             pos TEXT,
             definitions TEXT NOT NULL,
@@ -72,6 +78,8 @@ pub fn init_db() -> Result<Connection> {
 
         CREATE INDEX IF NOT EXISTS idx_simplified ON dictionary_entries(simplified);
         CREATE INDEX IF NOT EXISTS idx_han_viet ON dictionary_entries(han_viet);
+        CREATE INDEX IF NOT EXISTS idx_pinyin_clean ON dictionary_entries(pinyin_clean);
+        CREATE INDEX IF NOT EXISTS idx_pinyin_flat ON dictionary_entries(pinyin_flat);
         ",
     )?;
 
@@ -473,14 +481,35 @@ fn seed_core_data(conn: &Connection) -> Result<()> {
     ];
 
     for (sim, trad, py, hv, pos, defs, exs) in seed_entries {
+        let py_clean = clean_pinyin_rust(py);
+        let py_flat = py_clean.replace(' ', "");
         conn.execute(
-            "INSERT OR REPLACE INTO dictionary_entries (simplified, traditional, pinyin, han_viet, pos, definitions, examples)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-            params![sim, trad, py, hv, pos, defs, exs],
+            "INSERT OR REPLACE INTO dictionary_entries (simplified, traditional, pinyin, pinyin_clean, pinyin_flat, han_viet, pos, definitions, examples)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            params![sim, trad, py, py_clean, py_flat, hv, pos, defs, exs],
         )?;
     }
 
     Ok(())
+}
+
+pub fn clean_pinyin_rust(p: &str) -> String {
+    let lower = p.to_lowercase();
+    let mut result = String::with_capacity(lower.len());
+    for ch in lower.chars() {
+        match ch {
+            'ā' | 'á' | 'ǎ' | 'à' => result.push('a'),
+            'ē' | 'é' | 'ě' | 'è' => result.push('e'),
+            'ī' | 'í' | 'ǐ' | 'ì' => result.push('i'),
+            'ō' | 'ó' | 'ǒ' | 'ò' => result.push('o'),
+            'ū' | 'ú' | 'ǔ' | 'ù' => result.push('u'),
+            'ǖ' | 'ǘ' | 'ǚ' | 'ǜ' | 'ü' => result.push('v'),
+            '[' | ']' | '1'..='5' => (),
+            c if c.is_alphanumeric() || c == ' ' => result.push(c),
+            _ => (),
+        }
+    }
+    result.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
 pub fn lookup_word(conn: &Connection, word: &str) -> Option<DictionaryEntry> {
@@ -589,23 +618,258 @@ pub fn lookup_dictionary(state: tauri::State<DbState>, word: String) -> Option<D
     lookup_word(&conn, &word)
 }
 
-#[tauri::command]
-pub fn search_suggestions(state: tauri::State<DbState>, query: String) -> Vec<String> {
-    let conn = state.conn.lock().unwrap();
+pub fn lookup_reverse_vietnamese(conn: &Connection, query: &str, limit: usize) -> Vec<DictionaryEntry> {
+    let clean_query = query.trim();
+    if clean_query.is_empty() {
+        return Vec::new();
+    }
+
+    let term_upper = format!("%{}%", clean_query.to_uppercase());
+    let exact_def = format!("%\"{}\"%", clean_query.to_lowercase());
+    let starts_def = format!("%\"{}%", clean_query.to_lowercase());
+    let contains_def = format!("%{}%", clean_query.to_lowercase());
+
     let mut stmt = match conn.prepare(
-        "SELECT simplified FROM dictionary_entries WHERE simplified LIKE ?1 LIMIT 5",
+        "SELECT simplified, traditional, pinyin, han_viet, pos, definitions, examples
+         FROM dictionary_entries
+         WHERE han_viet LIKE ?1 OR definitions LIKE ?2
+         ORDER BY 
+             CASE 
+                 WHEN han_viet LIKE ?1 THEN 1
+                 WHEN definitions LIKE ?3 THEN 2
+                 WHEN definitions LIKE ?4 THEN 3
+                 ELSE 4
+             END,
+             length(simplified) ASC
+         LIMIT ?5"
     ) {
         Ok(s) => s,
         Err(_) => return Vec::new(),
     };
 
-    let pattern = format!("{}%", query.trim());
-    let rows = match stmt.query_map(params![pattern], |row| row.get(0)) {
-        Ok(r) => r,
+    let rows = stmt.query_map(params![term_upper, contains_def, exact_def, starts_def, limit], |row| {
+        let sim: String = row.get(0)?;
+        let trad: Option<String> = row.get(1)?;
+        let py: String = row.get(2)?;
+        let hv: String = row.get(3)?;
+        let pos: Option<String> = row.get(4)?;
+        let defs_raw: String = row.get(5)?;
+        let exs_raw: String = row.get(6)?;
+
+        let defs: Vec<String> = serde_json::from_str(&defs_raw).unwrap_or_else(|_| vec![defs_raw]);
+        let exs: Vec<ExampleSentence> = serde_json::from_str(&exs_raw).unwrap_or_default();
+
+        Ok(DictionaryEntry {
+            simplified: sim,
+            traditional: trad,
+            pinyin: py,
+            han_viet: hv,
+            pos,
+            definitions: defs,
+            examples: exs,
+        })
+    });
+
+    match rows {
+        Ok(r) => r.filter_map(|e| e.ok()).collect(),
+        Err(_) => Vec::new(),
+    }
+}
+
+pub fn lookup_by_pinyin_tone_free(conn: &Connection, query: &str, limit: usize) -> Vec<DictionaryEntry> {
+    let clean_query = clean_pinyin_rust(query);
+    let flat_query = clean_query.replace(' ', "");
+    if flat_query.is_empty() {
+        return Vec::new();
+    }
+
+    let flat_prefix = format!("{}%", flat_query);
+    let clean_prefix = format!("{}%", clean_query);
+
+    let mut stmt = match conn.prepare(
+        "SELECT simplified, traditional, pinyin, han_viet, pos, definitions, examples
+         FROM dictionary_entries
+         WHERE pinyin_flat = ?1 OR pinyin_flat LIKE ?2 OR pinyin_clean = ?3 OR pinyin_clean LIKE ?4
+         ORDER BY 
+             CASE 
+                 WHEN pinyin_flat = ?1 THEN 1
+                 WHEN pinyin_clean = ?3 THEN 2
+                 WHEN pinyin_flat LIKE ?2 THEN 3
+                 ELSE 4
+             END,
+             length(simplified) ASC
+         LIMIT ?5"
+    ) {
+        Ok(s) => s,
         Err(_) => return Vec::new(),
     };
 
-    rows.filter_map(|r| r.ok()).collect()
+    let rows = stmt.query_map(params![flat_query, flat_prefix, clean_query, clean_prefix, limit], |row| {
+        let sim: String = row.get(0)?;
+        let trad: Option<String> = row.get(1)?;
+        let py: String = row.get(2)?;
+        let hv: String = row.get(3)?;
+        let pos: Option<String> = row.get(4)?;
+        let defs_raw: String = row.get(5)?;
+        let exs_raw: String = row.get(6)?;
+
+        let defs: Vec<String> = serde_json::from_str(&defs_raw).unwrap_or_else(|_| vec![defs_raw]);
+        let exs: Vec<ExampleSentence> = serde_json::from_str(&exs_raw).unwrap_or_default();
+
+        Ok(DictionaryEntry {
+            simplified: sim,
+            traditional: trad,
+            pinyin: py,
+            han_viet: hv,
+            pos,
+            definitions: defs,
+            examples: exs,
+        })
+    });
+
+    match rows {
+        Ok(r) => r.filter_map(|e| e.ok()).collect(),
+        Err(_) => Vec::new(),
+    }
+}
+
+#[tauri::command]
+pub fn search_dictionary_multi(
+    state: tauri::State<DbState>,
+    query: String,
+    query_type: Option<String>,
+) -> Vec<DictionaryEntry> {
+    let conn = state.conn.lock().unwrap();
+    let q = query.trim();
+    if q.is_empty() {
+        return Vec::new();
+    }
+
+    let is_chinese = q.chars().any(|c| ('\u{4e00}'..='\u{9fa5}').contains(&c));
+
+    match query_type.as_deref() {
+        Some("chinese") => {
+            let mut results = Vec::new();
+            if let Some(entry) = lookup_word(&conn, q) {
+                results.push(entry);
+            }
+            if let Ok(mut stmt) = conn.prepare(
+                "SELECT simplified, traditional, pinyin, han_viet, pos, definitions, examples
+                 FROM dictionary_entries WHERE simplified LIKE ?1 AND simplified != ?2 LIMIT 9"
+            ) {
+                let pattern = format!("{}%", q);
+                if let Ok(rows) = stmt.query_map(params![pattern, q], |row| {
+                    let sim: String = row.get(0)?;
+                    let trad: Option<String> = row.get(1)?;
+                    let py: String = row.get(2)?;
+                    let hv: String = row.get(3)?;
+                    let pos: Option<String> = row.get(4)?;
+                    let defs_raw: String = row.get(5)?;
+                    let exs_raw: String = row.get(6)?;
+                    let defs: Vec<String> = serde_json::from_str(&defs_raw).unwrap_or_else(|_| vec![defs_raw]);
+                    let exs: Vec<ExampleSentence> = serde_json::from_str(&exs_raw).unwrap_or_default();
+                    Ok(DictionaryEntry {
+                        simplified: sim,
+                        traditional: trad,
+                        pinyin: py,
+                        han_viet: hv,
+                        pos,
+                        definitions: defs,
+                        examples: exs,
+                    })
+                }) {
+                    for r in rows.flatten() {
+                        results.push(r);
+                    }
+                }
+            }
+            results
+        }
+        Some("pinyin") => {
+            let pinyin_results = lookup_by_pinyin_tone_free(&conn, q, 10);
+            if !pinyin_results.is_empty() {
+                pinyin_results
+            } else {
+                lookup_reverse_vietnamese(&conn, q, 10)
+            }
+        }
+        Some("vietnamese") => {
+            let viet_results = lookup_reverse_vietnamese(&conn, q, 10);
+            if !viet_results.is_empty() {
+                viet_results
+            } else {
+                lookup_by_pinyin_tone_free(&conn, q, 10)
+            }
+        }
+        _ => {
+            if is_chinese {
+                let mut results = Vec::new();
+                if let Some(entry) = lookup_word(&conn, q) {
+                    results.push(entry);
+                }
+                results
+            } else {
+                let pinyin_res = lookup_by_pinyin_tone_free(&conn, q, 10);
+                if !pinyin_res.is_empty() {
+                    pinyin_res
+                } else {
+                    lookup_reverse_vietnamese(&conn, q, 10)
+                }
+            }
+        }
+    }
+}
+
+#[tauri::command]
+pub fn search_suggestions(state: tauri::State<DbState>, query: String) -> Vec<String> {
+    let conn = state.conn.lock().unwrap();
+    let q = query.trim();
+    if q.is_empty() {
+        return Vec::new();
+    }
+
+    let is_chinese = q.chars().any(|c| ('\u{4e00}'..='\u{9fa5}').contains(&c));
+    if is_chinese {
+        let mut stmt = match conn.prepare(
+            "SELECT simplified FROM dictionary_entries WHERE simplified LIKE ?1 LIMIT 5",
+        ) {
+            Ok(s) => s,
+            Err(_) => return Vec::new(),
+        };
+
+        let pattern = format!("{}%", q);
+        let rows = match stmt.query_map(params![pattern], |row| row.get(0)) {
+            Ok(r) => r,
+            Err(_) => return Vec::new(),
+        };
+
+        rows.filter_map(|r| r.ok()).collect()
+    } else {
+        // Query by clean pinyin
+        let clean_py = clean_pinyin_rust(q);
+        let flat_py = clean_py.replace(' ', "");
+        let flat_pattern = format!("{}%", flat_py);
+        if let Ok(mut stmt) = conn.prepare(
+            "SELECT simplified FROM dictionary_entries WHERE pinyin_flat = ?1 OR pinyin_flat LIKE ?2 LIMIT 5"
+        ) {
+            if let Ok(rows) = stmt.query_map(params![flat_py, flat_pattern], |row| row.get(0)) {
+                let res: Vec<String> = rows.filter_map(|r| r.ok()).collect();
+                if !res.is_empty() {
+                    return res;
+                }
+            }
+        }
+        // Fallback to definitions
+        let def_pattern = format!("%{}%", q);
+        if let Ok(mut stmt) = conn.prepare(
+            "SELECT simplified FROM dictionary_entries WHERE definitions LIKE ?1 LIMIT 5"
+        ) {
+            if let Ok(rows) = stmt.query_map(params![def_pattern], |row| row.get(0)) {
+                return rows.filter_map(|r| r.ok()).collect();
+            }
+        }
+        Vec::new()
+    }
 }
 
 #[cfg(test)]
@@ -627,5 +891,33 @@ mod tests {
         assert!(fallback_res.is_some(), "Tra cứu cụm từ 财务部 phải kích hoạt breakdown fallback");
         let fb_entry = fallback_res.unwrap();
         assert!(fb_entry.pinyin.contains("cái") && fb_entry.pinyin.contains("wù"));
+    }
+
+    #[test]
+    fn test_pinyin_tone_free_search() {
+        let conn = init_db().expect("Failed to init db");
+        // Test tìm kiếm từ 'gongzuo' -> phải ra '工作'
+        let res = lookup_by_pinyin_tone_free(&conn, "gongzuo", 5);
+        assert!(!res.is_empty(), "Tra cứu pinyin 'gongzuo' không được rỗng");
+        assert_eq!(res[0].simplified, "工作", "Kết quả đầu tiên của 'gongzuo' phải là '工作'");
+
+        // Test tìm kiếm từ 'nihao' -> phải ra '你好'
+        let res_nihao = lookup_by_pinyin_tone_free(&conn, "nihao", 5);
+        assert!(!res_nihao.is_empty(), "Tra cứu pinyin 'nihao' không được rỗng");
+        assert_eq!(res_nihao[0].simplified, "你好", "Kết quả đầu tiên của 'nihao' phải là '你好'");
+    }
+
+    #[test]
+    fn test_reverse_vietnamese_search() {
+        let conn = init_db().expect("Failed to init db");
+        // Test tra cứu ngược 'bảo hiểm' -> top 3 phải chứa '保险'
+        let res = lookup_reverse_vietnamese(&conn, "bảo hiểm", 5);
+        assert!(!res.is_empty(), "Tra cứu ngược 'bảo hiểm' không được rỗng");
+        let top3_sim: Vec<String> = res.iter().take(3).map(|e| e.simplified.clone()).collect();
+        assert!(top3_sim.contains(&"保险".to_string()), "Top 3 tra ngược 'bảo hiểm' phải chứa '保险'");
+
+        // Test tra cứu ngược 'sa thải' -> phải tìm thấy từ ngữ liên quan
+        let res_sathai = lookup_reverse_vietnamese(&conn, "sa thải", 5);
+        assert!(!res_sathai.is_empty(), "Tra cứu ngược 'sa thải' không được rỗng");
     }
 }

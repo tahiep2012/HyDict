@@ -26,3 +26,11 @@ export interface PinyinSyllableToken {
 }
 
 export type HskLevel = 'HSK 1' | 'HSK 2' | 'HSK 3' | 'HSK 4' | 'HSK 5' | 'HSK 6';
+
+export type SearchQueryType = 'chinese' | 'pinyin' | 'vietnamese';
+
+export interface SearchClassificationResult {
+  type: SearchQueryType;
+  normalizedQuery: string;
+  originalQuery: string;
+}

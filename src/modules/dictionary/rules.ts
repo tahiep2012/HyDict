@@ -1,4 +1,5 @@
 import { DictionaryEntry } from './types';
+import { stripPinyinTones } from './rules/queryClassifier';
 
 export const FALLBACK_DICTIONARY: Record<string, DictionaryEntry> = {
   报销: {
@@ -514,12 +515,111 @@ export const FALLBACK_DICTIONARY: Record<string, DictionaryEntry> = {
       },
     ],
   },
+  保险: {
+    simplified: '保险',
+    traditional: '保險',
+    pinyin: '[ bǎo xiǎn ]',
+    hanViet: 'Hán Việt: BẢO HIỂM',
+    pos: 'Danh từ / Tính từ',
+    definitions: [
+      'Bảo hiểm (hợp đồng bảo hiểm, bảo hiểm y tế, xã hội).',
+      'An toàn, chắc chắn, bảo đảm, đáng tin cậy.',
+    ],
+    examples: [
+      {
+        chinese: '他买了人寿保险。',
+        pinyin: '[ tā mǎi le rén shòu bǎo xiǎn ]',
+        vietnamese: 'Anh ấy đã mua bảo hiểm nhân thọ.',
+      },
+    ],
+  },
+  工作: {
+    simplified: '工作',
+    traditional: '工作',
+    pinyin: '[ gōng zuò ]',
+    hanViet: 'Hán Việt: CÔNG TÁC',
+    pos: 'Động từ / Danh từ',
+    definitions: [
+      'Làm việc, lao động.',
+      'Công việc, nghề nghiệp, nhiệm vụ.',
+    ],
+    examples: [
+      {
+        chinese: '他在河内工作。',
+        pinyin: '[ tā zài hé nèi gōng zuò ]',
+        vietnamese: 'Anh ấy làm việc ở Hà Nội.',
+      },
+    ],
+  },
+  你好: {
+    simplified: '你好',
+    traditional: '你好',
+    pinyin: '[ nǐ hǎo ]',
+    hanViet: 'Hán Việt: NỄ HẢO',
+    pos: 'Cụm từ',
+    definitions: [
+      'Xin chào! Lời chào phổ biến trong tiếng Trung.',
+    ],
+    examples: [
+      {
+        chinese: '你好，很高兴认识你！',
+        pinyin: '[ nǐ hǎo, hěn gāo xìng rèn shí nǐ ]',
+        vietnamese: 'Xin chào, rất vui được làm quen với bạn!',
+      },
+    ],
+  },
 };
 
 export function queryLocalDictionary(word: string): DictionaryEntry | null {
   if (!word || typeof word !== 'string') return null;
   const trimmed = word.trim();
   return FALLBACK_DICTIONARY[trimmed] || null;
+}
+
+export function queryLocalDictionaryMulti(query: string, type?: string): DictionaryEntry[] {
+  if (!query || typeof query !== 'string') return [];
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+
+  const values = Object.values(FALLBACK_DICTIONARY);
+
+  // If query is Chinese
+  if (type === 'chinese' || /[\u4e00-\u9fa5]/.test(trimmed)) {
+    const direct = queryLocalDictionary(trimmed);
+    const results: DictionaryEntry[] = direct ? [direct] : [];
+    for (const item of values) {
+      if (item.simplified !== trimmed && (item.simplified.startsWith(trimmed) || (item.traditional && item.traditional.startsWith(trimmed)))) {
+        results.push(item);
+      }
+    }
+    return results;
+  }
+
+  // If query is Pinyin
+  if (type === 'pinyin') {
+    const cleanQ = stripPinyinTones(trimmed);
+    const matched = values.filter((item) => {
+      const cleanPy = stripPinyinTones(item.pinyin);
+      return cleanPy === cleanQ || cleanPy.startsWith(cleanQ) || cleanPy.includes(cleanQ);
+    });
+    matched.sort((a, b) => {
+      const aPy = stripPinyinTones(a.pinyin);
+      const bPy = stripPinyinTones(b.pinyin);
+      if (aPy === cleanQ && bPy !== cleanQ) return -1;
+      if (bPy === cleanQ && aPy !== cleanQ) return 1;
+      return a.simplified.length - b.simplified.length;
+    });
+    if (matched.length > 0) return matched;
+  }
+
+  // Vietnamese reverse lookup (or fallback)
+  const lowerQ = trimmed.toLowerCase();
+  const upperQ = trimmed.toUpperCase();
+  return values.filter((item) => {
+    const hvMatch = item.hanViet.toUpperCase().includes(upperQ);
+    const defMatch = item.definitions.some((d) => d.toLowerCase().includes(lowerQ));
+    return hvMatch || defMatch;
+  });
 }
 
 export function formatHanViet(hanViet: string): string {
