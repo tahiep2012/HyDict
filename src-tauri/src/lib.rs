@@ -325,11 +325,7 @@ pub fn run() {
             // Đăng ký phím tắt toàn cục một cách độc lập và an toàn (chống xung đột VCKey/UniKey/App khác)
             for hotkey_str in ["alt+q", "ctrl+q", "shift+t"] {
                 if let Ok(shortcut) = hotkey_str.parse::<Shortcut>() {
-                    if let Err(err) = app.global_shortcut().register(shortcut) {
-                        eprintln!("[HyDict Hotkey] Warning: Không thể đăng ký phím tắt '{}': {:?}", hotkey_str, err);
-                    } else {
-                        println!("[HyDict Hotkey] Đăng ký thành công phím tắt: {}", hotkey_str);
-                    }
+                    let _ = app.global_shortcut().register(shortcut);
                 }
             }
 
@@ -397,14 +393,10 @@ pub fn run() {
             // Quản lý tray trong App State để tránh bị drop
             app.manage(tray);
 
-            // Đảm bảo cửa sổ chính hiển thị và lấy focus ngay khi người dùng khởi động ứng dụng
             if let Some(main_window) = app.get_webview_window("main") {
                 let _ = main_window.show();
                 let _ = main_window.unminimize();
                 let _ = main_window.set_focus();
-                println!("[HyDict Setup] Cửa sổ chính 'main' đã được kích hoạt hiển thị.");
-            } else {
-                eprintln!("[HyDict Setup] Cảnh báo: Không tìm thấy cửa sổ chính 'main'!");
             }
 
             Ok(())
@@ -449,6 +441,12 @@ pub fn run() {
             db::search_suggestions,
             tts::get_audio_cache_path
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|_app_handle, event| match event {
+            tauri::RunEvent::ExitRequested { api, .. } => {
+                api.prevent_exit();
+            }
+            _ => {}
+        });
 }
