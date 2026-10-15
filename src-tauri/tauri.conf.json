@@ -5,7 +5,6 @@
   "identifier": "com.hydict.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
-    "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "",
     "frontendDist": "../dist"
   },
@@ -22,7 +21,8 @@
         "alwaysOnTop": false,
         "visible": true,
         "shadow": true,
-        "skipTaskbar": false
+        "skipTaskbar": false,
+        "additionalBrowserArgs": "--proxy-bypass-list=<local>;localhost;*.localhost;tauri.localhost;127.0.0.1"
       },
       {
         "title": "HyDict Quick Lookup",
@@ -36,7 +36,8 @@
         "alwaysOnTop": true,
         "visible": false,
         "shadow": true,
-        "skipTaskbar": true
+        "skipTaskbar": true,
+        "additionalBrowserArgs": "--proxy-bypass-list=<local>;localhost;*.localhost;tauri.localhost;127.0.0.1"
       }
     ],
     "security": {
