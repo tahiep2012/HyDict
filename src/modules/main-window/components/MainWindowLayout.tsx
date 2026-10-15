@@ -41,9 +41,11 @@ export const MainWindowLayout: React.FC<MainWindowLayoutProps> = ({
         <div className="space-y-1.5">
           {/* Brand header */}
           <div className="flex items-center gap-2.5 px-2 py-3 mb-2 border-b border-slate-200/80">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
-              汉
-            </div>
+            <img
+              src="/icon.png"
+              alt="HyDict Logo"
+              className="w-8 h-8 rounded-xl object-contain shadow-xs shrink-0"
+            />
             <div>
               <div className="font-bold text-xs text-slate-800 leading-tight">HyDict</div>
               <div className="text-[10px] text-slate-400 font-medium">Desktop Edition</div>

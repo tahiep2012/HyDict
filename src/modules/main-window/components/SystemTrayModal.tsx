@@ -28,9 +28,11 @@ export const SystemTrayModal: React.FC<SystemTrayModalProps> = ({
       >
         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
-              汉
-            </div>
+            <img
+              src="/icon.png"
+              alt="HyDict Logo"
+              className="w-6 h-6 rounded-md object-contain shrink-0"
+            />
             <span className="font-bold text-sm text-slate-800">Khay Hệ Thống (Taskbar Tray)</span>
           </div>
           <button
