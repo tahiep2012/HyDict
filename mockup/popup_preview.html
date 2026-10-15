@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hanzii Dict Desktop - Bản Thử Nghiệm Tương Tác Trực Tiếp (Interactive Mockup)</title>
+  <style>
+    /* Design Tokens & Reset (100% Offline-First, Zero CDN) */
+    :root {
+      --bg-canvas: #f1f5f9;
+      --bg-card: #ffffff;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --brand-primary: #2563eb;
+      --brand-hover: #1d4ed8;
+      --emerald-600: #059669;
+      --emerald-bg: #ecfdf5;
+      --emerald-border: #a7f3d0;
+      --purple-600: #7c3aed;
+      --purple-bg: #f5f3ff;
+      --purple-border: #ddd6fe;
+      --amber-600: #d97706;
+      --amber-bg: #fef3c7;
+      --shadow-hud: 0 25px 40px -12px rgba(15, 23, 42, 0.25), 0 10px 20px -5px rgba(15, 23, 42, 0.12);
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-canvas);
+      color: var(--text-main);
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      user-select: none;
+    }
+
+    .demo-container {
+      max-width: 860px;
+      width: 100%;
+    }
+
+    /* Top Instruction Banner */
+    .demo-header {
+      background: white;
+      padding: 18px 24px;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+
+    .demo-header h1 {
+      font-size: 19px;
+      color: var(--brand-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-status {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 12px;
+      background: var(--emerald-bg);
+      color: var(--emerald-600);
+      border: 1px solid var(--emerald-border);
+    }
+
+    /* Anki Desktop Simulator Window */
+    .anki-window {
+      background: #0f172a;
+      border-radius: 24px;
+      border: 1px solid #334155;
+      box-shadow: 0 15px 35px -10px rgba(0,0,0,0.3);
+      overflow: hidden;
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    .anki-titlebar {
+      background: #1e293b;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #334155;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    .anki-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .anki-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+    .anki-dot.red { background: #ef4444; }
+    .anki-dot.yellow { background: #f59e0b; }
+    .anki-dot.green { background: #10b981; }
+
+    .anki-content {
+      padding: 32px 28px;
+      color: white;
+      text-align: center;
+    }
+
+    .anki-guide-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(37, 99, 235, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      color: #93c5fd;
+      padding: 8px 16px;
+      border-radius: 14px;
+      font-size: 13px;
+      margin-bottom: 24px;
+      animation: pulseGlow 2.5s infinite;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { border-color: rgba(59, 130, 246, 0.35); }
+      50% { border-color: rgba(59, 130, 246, 0.8); }
+    }
+
+    /* Interactive Chinese Sentence Area */
+    .sentence-wrapper {
+      margin-bottom: 20px;
+      padding: 16px;
+      background: rgba(30, 41, 59, 0.6);
+      border-radius: 18px;
+      border: 1px solid #334155;
+    }
+
+    .interactive-sentence {
+      font-size: 34px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      line-height: 1.4;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 2px;
+      user-select: text;
+    }
+
+    /* Smart Word Spans */
+    .cjk-word {
+      padding: 2px 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .cjk-word:hover {
+      background: rgba(59, 130, 246, 0.3);
+      color: #bfdbfe;
+    }
+
+    .cjk-word.active-selected {
+      background: #2563eb !important;
+      color: white !important;
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.6), 0 4px 12px rgba(37, 99, 235, 0.4);
+      transform: scale(1.05);
+    }
+
+    .anki-pinyin-sub {
+      font-size: 16px;
+      color: #fbbf24;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+
+    .anki-trans-sub {
+      font-size: 15px;
+      color: #cbd5e1;
+      margin-top: 6px;
+    }
+
+    /* Sample Selector Tabs */
+    .sample-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .sample-btn {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #cbd5e1;
+      padding: 6px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .sample-btn:hover {
+      background: #334155;
+      color: white;
+    }
+
+    .sample-btn.active {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: white;
+      font-weight: 600;
+    }
+
+    .shortcut-tip {
+      margin-top: 24px;
+      font-size: 13px;
+      color: #94a3b8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .kbd {
+      background: #334155;
+      color: #f8fafc;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      border: 1px solid #475569;
+      font-family: monospace;
+      font-weight: bold;
+    }
+
+    /* ========================================================
+       FLOATING POPUP HUD OVERLAY (DỘNG THEO CHUỘT)
+       ======================================================== */
+    .hud-overlay {
+      position: fixed;
+      z-index: 9999;
+      width: 480px;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(16px);
+      border-radius: 24px;
+      border: 1px solid #cbd5e1;
+      box-shadow: var(--shadow-hud);
+      overflow: hidden;
+      display: none; /* Hiện khi double click */
+      animation: popBounce 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popBounce {
+      from { opacity: 0; transform: translateY(12px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .hud-titlebar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border-color);
+      cursor: move;
+    }
+
+    .hud-titlebar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--brand-primary);
+    }
+
+    .hud-titlebar-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .icon-btn:hover { background: #e2e8f0; color: var(--text-main); }
+    .icon-btn.pinned { color: var(--brand-primary); background: #eff6ff; }
+
+    .hud-content {
+      padding: 20px;
+      max-height: 520px;
+      overflow-y: auto;
+    }
+
+    /* Segmenter Chip Bar */
+    .segmenter-box {
+      margin-bottom: 16px;
+      padding: 10px 14px;
+      background: #f8fafc;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .segmenter-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .segment-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .segment-chip {
+      padding: 4px 12px;
+      font-size: 13px;
+      border-radius: 10px;
+      background: white;
+      border: 1px solid #cbd5e1;
+      color: var(--text-main);
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .segment-chip:hover {
+      border-color: var(--brand-primary);
+      color: var(--brand-primary);
+      background: #eff6ff;
+    }
+
+    .segment-chip.active {
+      background: var(--brand-primary);
+      color: white;
+      border-color: var(--brand-primary);
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+    }
+
+    /* Main Word Showcase */
+    .word-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .word-hanzi {
+      font-size: 52px;
+      font-weight: 800;
+      color: #1e3a8a;
+      line-height: 1.1;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+
+    .word-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .badge-pinyin {
+      font-size: 14px;
+      font-weight: 700;
+      color: #b45309;
+      background: var(--amber-bg);
+      padding: 3px 12px;
+      border-radius: 12px;
+      border: 1px solid #fde68a;
+    }
+
+    .badge-hanviet {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--emerald-600);
+      background: var(--emerald-bg);
+      padding: 3px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--emerald-border);
+    }
+
+    .badge-pos {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--purple-600);
+      background: var(--purple-bg);
+      padding: 3px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--purple-border);
+    }
+
+    .audio-play-btn {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: var(--brand-primary);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .audio-play-btn:hover {
+      background: var(--brand-primary);
+      color: white;
+      transform: scale(1.08);
+    }
+
+    .audio-play-btn.speaking {
+      animation: soundPulse 0.8s infinite;
+      background: var(--brand-primary);
+      color: white;
+    }
+
+    @keyframes soundPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    /* Definition Card */
+    .definition-box {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 14px 16px;
+      border: 1px solid #e2e8f0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #334155;
+      margin-bottom: 16px;
+    }
+
+    /* Example Section */
+    .section-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--brand-primary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .example-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid var(--brand-primary);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .example-audio-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: var(--brand-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .example-audio-btn:hover {
+      background: var(--brand-primary);
+      color: white;
+    }
+
+    .example-chinese {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 4px;
+      padding-right: 28px;
+    }
+
+    .example-pinyin { font-size: 13px; color: var(--amber-600); margin-bottom: 4px; }
+    .example-translation { font-size: 13px; color: #475569; }
+
+    /* Footer */
+    .hud-footer {
+      padding: 12px 18px;
+      background: #f8fafc;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .add-anki-btn {
+      background: #16a34a;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+      transition: all 0.15s;
+    }
+
+    .add-anki-btn:hover {
+      background: #15803d;
+      transform: translateY(-1px);
+    }
+
+    .add-anki-btn:active { transform: translateY(0); }
+
+    /* Toast Notification */
+    .toast-msg {
+      position: fixed;
+      bottom: 24px;
+      background: #0f172a;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 14px;
+      font-size: 13px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+      display: none;
+      align-items: center;
+      gap: 10px;
+      z-index: 10000;
+      animation: toastIn 0.2s ease-out;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="demo-container">
+    <!-- Header -->
+    <div class="demo-header">
+      <div>
+        <h1>
+          <span>⚡ Hanzii Dict Desktop - Bản Thử Nghiệm Tương Tác</span>
+        </h1>
+        <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+          Bấm hoặc nhấp đúp (Double-click) vào bất kỳ từ nào dưới đây để xem Popup Từ Điển bật lên tức thì!
+        </p>
+      </div>
+      <span class="badge-status">Đã Kích Hoạt Tương Tác</span>
+    </div>
+
+    <!-- Anki Desktop Simulator Window -->
+    <div class="anki-window">
+      <div class="anki-titlebar">
+        <div class="anki-dots">
+          <div class="anki-dot red"></div>
+          <div class="anki-dot yellow"></div>
+          <div class="anki-dot green"></div>
+        </div>
+        <div>Anki Desktop - Reviewer [Mô Phỏng Trực Tiếp]</div>
+        <div style="font-size: 11px; color: #64748b;">Deck: HSK Tiếng Trung</div>
+      </div>
+
+      <div class="anki-content">
+        <div class="anki-guide-banner">
+          👉 <strong>HƯỚNG DẪN:</strong> Nhấp đúp chuột (Double click) vào bất kỳ từ nào bên dưới hoặc bấm phím <span class="kbd">Shift + T</span>
+        </div>
+
+        <!-- The Interactive Sentence -->
+        <div class="sentence-wrapper">
+          <div class="interactive-sentence" id="sentenceContainer">
+            <!-- Rendered by JS -->
+          </div>
+          <div class="anki-pinyin-sub" id="sentencePinyin">[ zhè běn shū yǒu wàn yè ]</div>
+          <div class="anki-trans-sub" id="sentenceTrans">Cuốn sách này có vạn trang.</div>
+        </div>
+
+        <!-- Sample Switchers -->
+        <div class="sample-tabs">
+          <button class="sample-btn active" onclick="switchSample(0)">Câu mẫu 1: 这本书有万页</button>
+          <button class="sample-btn" onclick="switchSample(1)">Câu mẫu 2: 万里长城十分雄伟</button>
+          <button class="sample-btn" onclick="switchSample(2)">Câu mẫu 3: 我正在用Anki学汉语</button>
+        </div>
+
+        <div class="shortcut-tip">
+          <span>💡 Phím tắt hoạt động:</span>
+          <span class="kbd">Shift + T</span> <span>hoặc</span> <span class="kbd">Alt + Q</span>
+          <span>• Đóng popup:</span> <span class="kbd">Esc</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING POPUP HUD OVERLAY -->
+  <div class="hud-overlay" id="popupHud">
+    <!-- Titlebar -->
+    <div class="hud-titlebar" id="hudDragHandle">
+      <div class="hud-titlebar-left">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>
+        </svg>
+        <span>Hanzii Fast Lookup HUD</span>
+      </div>
+      <div class="hud-titlebar-actions">
+        <button class="icon-btn" id="pinBtn" title="Ghim cửa sổ (Không tự đóng)" onclick="togglePin()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="17" x2="12" y2="22"/>
+            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
+          </svg>
+        </button>
+        <button class="icon-btn" title="Đóng (Esc)" onclick="closePopup()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="hud-content">
+      <!-- Smart Word Segmenter Bar -->
+      <div class="segmenter-box">
+        <div class="segmenter-title">
+          <span>✨ Phân đoạn từ ngữ nghĩa trong câu</span>
+          <span style="font-size: 10px; color: #2563eb; font-weight: bold;">Jieba NLP</span>
+        </div>
+        <div class="segment-chips" id="segmentChips">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Word Hero Showcase -->
+      <div class="word-hero">
+        <div class="word-hanzi" id="hudHanzi">万</div>
+        <div class="word-meta-row">
+          <span class="badge-pinyin" id="hudPinyin">[ wàn ]</span>
+          <span class="badge-hanviet" id="hudHanViet">Hán Việt: VẠN</span>
+          <span class="badge-pos" id="hudPos">Số từ (num)</span>
+          <button class="audio-play-btn" id="wordAudioBtn" title="Nghe phát âm chuẩn AI" onclick="playCurrentWordAudio()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Definitions -->
+      <div class="definition-box" id="hudDef">
+        <!-- Filled by JS -->
+      </div>
+
+      <!-- Examples -->
+      <div class="section-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>Câu ví dụ thực tế</span>
+      </div>
+      <div id="hudExamples">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="hud-footer">
+      <div style="font-size: 11px; color: var(--text-muted);">
+        Bấm <span class="kbd">Esc</span> để đóng • Kéo thả thanh trên cùng
+      </div>
+      <button class="add-anki-btn" onclick="addToAnki()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14"/><path d="M5 12h14"/>
+        </svg>
+        <span>Thêm vào Anki</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Message -->
+  <div class="toast-msg" id="toastMsg">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+    <span id="toastText">Đã thêm vào Anki thành công!</span>
+  </div>
+
+  <script>
+    /* ========================================================
+       DATABASE MOCKUP TỪ ĐIỂN OFFLINE ĐẦY ĐỦ
+       ======================================================== */
+    const DICTIONARY_DB = {
+      "万": {
+        hanzi: "万",
+        pinyin: "[ wàn ]",
+        hanViet: "Hán Việt: VẠN",
+        pos: "Số từ (num)",
+        def: "<strong>1.</strong> Muôn, vạn; mười nghìn (10,000).<br><strong>2.</strong> Rất nhiều, vô số; chỉ một số lượng cực lớn (ví dụ: vạn tuế, vạn vật).<br><strong>3.</strong> Tuyệt đối, nhất thiết (phó từ: 万万不可 - vạn vạn bất khả).",
+        examples: [
+          { zh: "这本书有万页。", py: "[ zhè běn shū yǒu wàn yè ]", vi: "Cuốn sách này có vạn trang." },
+          { zh: "万里长城十分雄伟。", py: "[ wàn lǐ cháng chéng shí fēn xióng wěi ]", vi: "Vạn Lý Trường Thành vô cùng hùng vĩ." }
+        ]
+      },
+      "这本书": {
+        hanzi: "这本书",
+        pinyin: "[ zhè běn shū ]",
+        hanViet: "Hán Việt: GIÁ BỔN THƯ",
+        pos: "Cụm danh từ (noun phrase)",
+        def: "<strong>1.</strong> Cuốn sách này, quyển sách này.<br><strong>2.</strong> Cấu trúc kết hợp: Đại từ chỉ thị (这) + Lượng từ (本) + Danh từ (书).",
+        examples: [
+          { zh: "这本书很有意思。", py: "[ zhè běn shū hěn yǒu yì si ]", vi: "Quyển sách này rất hay." }
+        ]
+      },
+      "这": {
+        hanzi: "这",
+        pinyin: "[ zhè ]",
+        hanViet: "Hán Việt: GIÁ",
+        pos: "Đại từ chỉ thị (pronoun)",
+        def: "<strong>1.</strong> Đây, này; cái này, việc này (chỉ người hoặc vật ở cự ly gần).<br><strong>2.</strong> Lúc này, bây giờ (phó từ: 这就去 - đi ngay bây giờ).",
+        examples: [
+          { zh: "这是我的中文老师。", py: "[ zhè shì wǒ de zhōng wén lǎo shī ]", vi: "Đây là giáo viên tiếng Trung của tôi." }
+        ]
+      },
+      "本书": {
+        hanzi: "本书",
+        pinyin: "[ běn shū ]",
+        hanViet: "Hán Việt: BỔN THƯ",
+        pos: "Danh từ (noun)",
+        def: "<strong>1.</strong> Cuốn sách này, cuốn sách hiện tại.<br><strong>2.</strong> Trong văn viết: Bản thư (chỉ chính tác phẩm đang được đề cập).",
+        examples: [
+          { zh: "本书共分十章。", py: "[ běn shū gòng fēn shí zhāng ]", vi: "Cuốn sách này gồm có mười chương." }
+        ]
+      },
+      "有": {
+        hanzi: "有",
+        pinyin: "[ yǒu ]",
+        hanViet: "Hán Việt: HỮU",
+        pos: "Động từ (verb)",
+        def: "<strong>1.</strong> Có; sở hữu, chiếm hữu (ngược nghĩa với 无 / 没).<br><strong>2.</strong> Tồn tại, hiện hữu (ví dụ: 房间里有人 - trong phòng có người).",
+        examples: [
+          { zh: "我有一本汉语词典。", py: "[ wǒ yǒu yī běn hàn yǔ cí diǎn ]", vi: "Tôi có một cuốn từ điển tiếng Hán." }
+        ]
+      },
+      "页": {
+        hanzi: "页",
+        pinyin: "[ yè ]",
+        hanViet: "Hán Việt: DIỆP",
+        pos: "Lượng từ / Danh từ",
+        def: "<strong>1.</strong> Trang (sách, vở, tài liệu).<br><strong>2.</strong> Mảnh lá (nghĩa gốc cổ).",
+        examples: [
+          { zh: "请翻到第五十页。", py: "[ qǐng fān dào dì wǔ shí yè ]", vi: "Xin hãy lật đến trang số 50." }
+        ]
+      },
+      "万里长城": {
+        hanzi: "万里长城",
+        pinyin: "[ wàn lǐ cháng chéng ]",
+        hanViet: "Hán Việt: VẠN LÝ TRƯỜNG THÀNH",
+        pos: "Danh từ riêng (proper noun)",
+        def: "<strong>1.</strong> Vạn Lý Trường Thành (công trình phòng thủ quân sự cổ đại vĩ đại của Trung Quốc).<br><strong>2.</strong> Nghĩa ẩn dụ: Thành trì vững chắc không thể phá vỡ.",
+        examples: [
+          { zh: "不到长城非好汉。", py: "[ bù dào cháng chéng fēi hǎo hàn ]", vi: "Bất đáo Trường Thành phi hảo hán (Chưa tới Trường Thành chưa phải trang hảo hán)." }
+        ]
+      },
+      "十分": {
+        hanzi: "十分",
+        pinyin: "[ shí fēn ]",
+        hanViet: "Hán Việt: THẬP PHÂN",
+        pos: "Phó từ mức độ (adverb)",
+        def: "<strong>1.</strong> Vô cùng, rất, hết sức (đồng nghĩa với 非常, 极其).<br><strong>2.</strong> Mười phần, toàn bộ (ví dụ: 十分把握 - nắm chắc mười phần).",
+        examples: [
+          { zh: "听了这个消息，大家十分高兴。", py: "[ tīng le zhè ge xiāo xi, dà jiā shí fēn gāo xìng ]", vi: "Nghe tin này, mọi người vô cùng vui mừng." }
+        ]
+      },
+      "雄伟": {
+        hanzi: "雄伟",
+        pinyin: "[ xióng wěi ]",
+        hanViet: "Hán Việt: HÙNG VĨ",
+        pos: "Tính từ (adjective)",
+        def: "<strong>1.</strong> Hùng vĩ, đồ sộ, nguy nga tráng lệ (thường dùng cho núi non, công trình kiến trúc).",
+        examples: [
+          { zh: "天安门城楼雄伟壮丽。", py: "[ tiān ān mén chéng lóu xióng wěi zhuàng lì ]", vi: "Lầu thành Thiên An Môn hùng vĩ tráng lệ." }
+        ]
+      },
+      "我": {
+        hanzi: "我",
+        pinyin: "[ wǒ ]",
+        hanViet: "Hán Việt: NGÃ",
+        pos: "Đại từ nhân xưng",
+        def: "<strong>1.</strong> Tôi, ta, mình (ngôi thứ nhất số ít).",
+        examples: [{ zh: "我很喜欢学中文。", py: "[ wǒ hěn xǐ huan xué zhōng wén ]", vi: "Tôi rất thích học tiếng Trung." }]
+      },
+      "正在": {
+        hanzi: "正在",
+        pinyin: "[ zhèng zài ]",
+        hanViet: "Hán Việt: CHÍNH TẠI",
+        pos: "Phó từ (adverb)",
+        def: "<strong>1.</strong> Đang; diễn tả hành động đang tiến hành trong hiện tại.",
+        examples: [{ zh: "他正在看书。", py: "[ tā zhèng zài kàn shū ]", vi: "Anh ấy đang đọc sách." }]
+      },
+      "用": {
+        hanzi: "用",
+        pinyin: "[ yòng ]",
+        hanViet: "Hán Việt: DỤNG",
+        pos: "Động từ (verb)",
+        def: "<strong>1.</strong> Dùng, sử dụng; bằng phương tiện gì đó.<br><strong>2.</strong> Chi phí, tiêu tốn.",
+        examples: [{ zh: "用筷子吃饭。", py: "[ yòng kuài zi chī fàn ]", vi: "Dùng đũa ăn cơm." }]
+      },
+      "Anki": {
+        hanzi: "Anki",
+        pinyin: "[ Anki ]",
+        hanViet: "Phần mềm Anki",
+        pos: "Phần mềm Flashcard",
+        def: "<strong>1.</strong> Phần mềm học thẻ lặp lại ngắt quãng (Spaced Repetition System) cực kỳ hiệu quả cho việc nhớ từ vựng.",
+        examples: [{ zh: "每天用Anki复习生词。", py: "[ měi tiān yòng Anki fù xí shēng cí ]", vi: "Mỗi ngày dùng Anki để ôn từ mới." }]
+      },
+      "学": {
+        hanzi: "学",
+        pinyin: "[ xué ]",
+        hanViet: "Hán Việt: HỌC",
+        pos: "Động từ (verb)",
+        def: "<strong>1.</strong> Học tập, nghiên cứu; bắt chước, mô phỏng.",
+        examples: [{ zh: "学无止境。", py: "[ xué wú zhǐ jìng ]", vi: "Học tập không có điểm dừng." }]
+      },
+      "汉语": {
+        hanzi: "汉语",
+        pinyin: "[ hàn yǔ ]",
+        hanViet: "Hán Việt: HÁN NGỮ",
+        pos: "Danh từ (noun)",
+        def: "<strong>1.</strong> Tiếng Hán, tiếng Trung Quốc (ngôn ngữ của dân tộc Hán).",
+        examples: [{ zh: "汉语语法很有规律。", py: "[ hàn yǔ yǔ fǎ hěn yǒu guī lǜ ]", vi: "Ngữ pháp tiếng Trung rất có quy luật." }]
+      }
+    };
+
+    /* ========================================================
+       SAMPLE SENTENCES CONFIG
+       ======================================================== */
+    const SAMPLES = [
+      {
+        tokens: ["这", "本书", "有", "万", "页", "。"],
+        pinyin: "[ zhè běn shū yǒu wàn yè ]",
+        trans: "Cuốn sách này có vạn trang.",
+        defaultWord: "万"
+      },
+      {
+        tokens: ["万里长城", "十分", "雄伟", "。"],
+        pinyin: "[ wàn lǐ cháng chéng shí fēn xióng wěi ]",
+        trans: "Vạn Lý Trường Thành vô cùng hùng vĩ.",
+        defaultWord: "万里长城"
+      },
+      {
+        tokens: ["我", "正在", "用", "Anki", "学", "汉语", "。"],
+        pinyin: "[ wǒ zhèng zài yòng Anki xué hàn yǔ ]",
+        trans: "Tôi đang dùng Anki để học tiếng Hán.",
+        defaultWord: "汉语"
+      }
+    ];
+
+    let currentSampleIndex = 0;
+    let currentSelectedWord = "万";
+    let isPinned = false;
+
+    // Khởi tạo
+    function init() {
+      renderSentence(0);
+      setupGlobalListeners();
+    }
+
+    // Render câu
+    function renderSentence(index) {
+      currentSampleIndex = index;
+      const sample = SAMPLES[index];
+      const container = document.getElementById("sentenceContainer");
+      container.innerHTML = "";
+
+      sample.tokens.forEach((token) => {
+        const span = document.createElement("span");
+        span.className = "cjk-word";
+        span.innerText = token;
+        span.dataset.word = token;
+
+        if (token === "。") {
+          span.style.cursor = "default";
+          span.style.padding = "0";
+        } else {
+          // Bắt sự kiện Click hoặc Double-Click
+          span.addEventListener("dblclick", (e) => {
+            e.stopPropagation();
+            triggerLookup(token, e.clientX, e.clientY);
+          });
+          span.addEventListener("click", (e) => {
+            e.stopPropagation();
+            triggerLookup(token, e.clientX, e.clientY);
+          });
+        }
+        container.appendChild(span);
+      });
+
+      document.getElementById("sentencePinyin").innerText = sample.pinyin;
+      document.getElementById("sentenceTrans").innerText = sample.trans;
+    }
+
+    // Chuyển đổi câu mẫu
+    function switchSample(index) {
+      document.querySelectorAll(".sample-btn").forEach((b, i) => {
+        b.classList.toggle("active", i === index);
+      });
+      renderSentence(index);
+      closePopup();
+    }
+
+    // Kích hoạt tra từ và hiện Popup
+    function triggerLookup(word, mouseX, mouseY) {
+      if (word === "。") return;
+
+      currentSelectedWord = word;
+
+      // Cập nhật highlight active trên câu
+      document.querySelectorAll(".cjk-word").forEach((el) => {
+        el.classList.toggle("active-selected", el.dataset.word === word);
+      });
+
+      // Lấy dữ liệu từ điển
+      const data = DICTIONARY_DB[word] || {
+        hanzi: word,
+        pinyin: "[ ? ]",
+        hanViet: "Hán Việt: ?",
+        pos: "Từ vựng",
+        def: "Đang cập nhật nghĩa chi tiết cho từ này...",
+        examples: []
+      };
+
+      // Đổ dữ liệu vào Popup HUD
+      document.getElementById("hudHanzi").innerText = data.hanzi;
+      document.getElementById("hudPinyin").innerText = data.pinyin;
+      document.getElementById("hudHanViet").innerText = data.hanViet;
+      document.getElementById("hudPos").innerText = data.pos;
+      document.getElementById("hudDef").innerHTML = data.def;
+
+      // Đổ dải phân từ trong câu (Segment Chips)
+      const chipsBox = document.getElementById("segmentChips");
+      chipsBox.innerHTML = "";
+      const curTokens = SAMPLES[currentSampleIndex].tokens.filter(t => t !== "。");
+      curTokens.forEach(t => {
+        const chip = document.createElement("button");
+        chip.className = "segment-chip" + (t === word ? " active" : "");
+        chip.innerText = t;
+        chip.onclick = () => triggerLookup(t);
+        chipsBox.appendChild(chip);
+      });
+
+      // Đổ danh sách câu ví dụ
+      const exContainer = document.getElementById("hudExamples");
+      exContainer.innerHTML = "";
+      if (data.examples && data.examples.length > 0) {
+        data.examples.forEach(ex => {
+          const card = document.createElement("div");
+          card.className = "example-card";
+          card.innerHTML = `
+            <button class="example-audio-btn" title="Nghe câu ví dụ" onclick="speakText('${ex.zh.replace(/'/g, "\\'")}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </button>
+            <div class="example-chinese">${ex.zh}</div>
+            <div class="example-pinyin">${ex.py}</div>
+            <div class="example-translation">${ex.vi}</div>
+          `;
+          exContainer.appendChild(card);
+        });
+      } else {
+        exContainer.innerHTML = "<div style='font-size: 13px; color: #94a3b8; font-style: italic;'>Chưa có câu ví dụ cho từ này.</div>";
+      }
+
+      // Định vị Popup thông minh cạnh vị trí con trỏ chuột
+      const popup = document.getElementById("popupHud");
+      popup.style.display = "block";
+
+      if (mouseX !== undefined && mouseY !== undefined && !isPinned) {
+        const popupWidth = 480;
+        const popupHeight = 520;
+        let left = mouseX + 15;
+        let top = mouseY - 40;
+
+        // Tránh tràn màn hình
+        if (left + popupWidth > window.innerWidth) {
+          left = mouseX - popupWidth - 15;
+        }
+        if (top + popupHeight > window.innerHeight) {
+          top = window.innerHeight - popupHeight - 20;
+        }
+        if (top < 10) top = 10;
+        if (left < 10) left = 10;
+
+        popup.style.left = left + "px";
+        popup.style.top = top + "px";
+      } else if (!isPinned && popup.style.left === "") {
+        // Căn giữa nếu mở bằng phím tắt
+        popup.style.left = "calc(50% - 240px)";
+        popup.style.top = "160px";
+      }
+
+      // Tự động phát âm nếu muốn
+      speakText(data.hanzi);
+    }
+
+    // Đóng Popup
+    function closePopup() {
+      if (isPinned) return;
+      const popup = document.getElementById("popupHud");
+      popup.style.display = "none";
+      document.querySelectorAll(".cjk-word").forEach(el => el.classList.remove("active-selected"));
+    }
+
+    // Ghim cửa sổ
+    function togglePin() {
+      isPinned = !isPinned;
+      const btn = document.getElementById("pinBtn");
+      btn.classList.toggle("pinned", isPinned);
+      showToast(isPinned ? "📌 Đã ghim cửa sổ (Không tự đóng)" : "🔓 Đã bỏ ghim cửa sổ");
+    }
+
+    // Phát âm chuẩn AI bằng Web Speech API native
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "zh-CN";
+      utterance.rate = 0.9;
+      
+      const audioBtn = document.getElementById("wordAudioBtn");
+      utterance.onstart = () => audioBtn && audioBtn.classList.add("speaking");
+      utterance.onend = () => audioBtn && audioBtn.classList.remove("speaking");
+      utterance.onerror = () => audioBtn && audioBtn.classList.remove("speaking");
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function playCurrentWordAudio() {
+      speakText(currentSelectedWord);
+    }
+
+    // Thêm vào Anki
+    function addToAnki() {
+      showToast(`✅ Đã tạo Flashcard [${currentSelectedWord}] vào Anki thành công!`);
+    }
+
+    // Thông báo Toast
+    function showToast(msg) {
+      const toast = document.getElementById("toastMsg");
+      document.getElementById("toastText").innerText = msg;
+      toast.style.display = "flex";
+      setTimeout(() => { toast.style.display = "none"; }, 2500);
+    }
+
+    // Lắng nghe phím tắt toàn cục mô phỏng (Shift+T, Esc)
+    function setupGlobalListeners() {
+      document.addEventListener("keydown", (e) => {
+        // Phím Esc
+        if (e.key === "Escape") {
+          isPinned = false;
+          document.getElementById("pinBtn").classList.remove("pinned");
+          closePopup();
+        }
+
+        // Phím Shift + T hoặc Alt + Q
+        if ((e.shiftKey && (e.key === "T" || e.key === "t")) || (e.altKey && (e.key === "Q" || e.key === "q"))) {
+          e.preventDefault();
+          // Tra từ hiện tại
+          triggerLookup(currentSelectedWord);
+          showToast(`⚡ Đã kích hoạt phím tắt [Shift + T] tra từ: ${currentSelectedWord}`);
+        }
+      });
+
+      // Click ra ngoài để đóng nếu không ghim
+      document.addEventListener("click", (e) => {
+        const popup = document.getElementById("popupHud");
+        if (popup.style.display === "block" && !isPinned) {
+          if (!popup.contains(e.target) && !e.target.closest(".cjk-word")) {
+            closePopup();
+          }
+        }
+      });
+    }
+
+    // Chạy khi trang tải xong
+    window.onload = init;
+  </script>
+</body>
+</html>

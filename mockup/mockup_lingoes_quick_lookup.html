@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hanzii Dict - Lingoes-Style Quick Lookup Mockup</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Hanzi Writer CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
+    }
+    .font-cjk {
+      font-family: 'Noto Sans SC', "Microsoft YaHei", "PingFang SC", sans-serif;
+    }
+    
+    /* Scrollbar tinh chỉnh siêu gọn kiểu Desktop app */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Hiệu ứng bóng đổ cửa sổ chuẩn Lingoes / Windows 11 */
+    .hud-shadow {
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.08);
+    }
+    .hud-glow {
+      box-shadow: 0 0 0 2px #3b82f6, 0 12px 36px -4px rgba(59, 130, 246, 0.35);
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-800 min-h-screen overflow-x-hidden select-none p-4">
+
+  <!-- ========================================================================= -->
+  <!-- TOP TOOLBAR: ĐIỀU KHIỂN BẢN MOCKUP CHO NGƯỜI DÙNG -->
+  <!-- ========================================================================= -->
+  <header class="max-w-6xl mx-auto mb-4 bg-slate-800/90 backdrop-blur-md border border-slate-700/80 rounded-2xl p-4 text-white flex flex-wrap items-center justify-between gap-4 shadow-xl">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+        <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+      </div>
+      <div>
+        <h1 class="text-base font-bold text-white flex items-center gap-2">
+          Hanzii Dict — Lingoes Quick Lookup HUD (Mockup v2)
+          <span class="px-2 py-0.5 text-[11px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">
+            Chuẩn Lingoes Desktop
+          </span>
+        </h1>
+        <p class="text-xs text-slate-400">Thiết kế mật độ dữ liệu cao (Data-Dense), phát âm tức thì, chiết tự bút thuận, loại bỏ Anki</p>
+      </div>
+    </div>
+
+    <!-- Nút tương tác chọn từ mẫu để test thử -->
+    <div class="flex items-center gap-2 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-700 text-xs">
+      <span class="text-slate-400 font-medium">Bấm thử từ mẫu:</span>
+      <button onclick="loadWord('住')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors font-cjk">住 (Trú)</button>
+      <button onclick="loadWord('页')" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold rounded-lg transition-colors font-cjk">页 (Diệp)</button>
+      <button onclick="loadWord('有')" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold rounded-lg transition-colors font-cjk">有 (Hữu)</button>
+      <button onclick="loadWord('本')" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold rounded-lg transition-colors font-cjk">本 (Bổn)</button>
+      <button onclick="loadWord('仁泽坊')" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold rounded-lg transition-colors font-cjk">仁泽坊</button>
+      <button onclick="loadWord('工业区')" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold rounded-lg transition-colors font-cjk">工业区</button>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MÔ PHỎNG MÀN HÌNH WINDOWS + NOTEPAD++ VÀ CỬA SỔ QUICK LOOKUP HUD -->
+  <!-- ========================================================================= -->
+  <main class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+    <!-- CỘT TRÁI: Mô phỏng cửa sổ Notepad++ của anh -->
+    <section class="lg:col-span-5 bg-white rounded-2xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col h-[640px]">
+      <!-- Titlebar Notepad++ -->
+      <div class="bg-slate-100 px-3 py-2 border-b border-slate-200 flex items-center justify-between text-xs text-slate-700 select-none">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+          <span class="font-semibold">*new 3 - Notepad++</span>
+        </div>
+        <div class="flex items-center gap-2 text-slate-400">
+          <i data-lucide="minus" class="w-3 h-3"></i>
+          <i data-lucide="square" class="w-3 h-3"></i>
+          <i data-lucide="x" class="w-3 h-3"></i>
+        </div>
+      </div>
+      <!-- Menubar Notepad++ -->
+      <div class="bg-slate-50 px-3 py-1 border-b border-slate-200 text-[11px] text-slate-600 flex gap-3">
+        <span>File</span>
+        <span>Edit</span>
+        <span>Search</span>
+        <span>View</span>
+        <span>Encoding</span>
+        <span>Language</span>
+        <span>Settings</span>
+        <span>Plugins</span>
+      </div>
+      <!-- Nội dung tài liệu text của anh -->
+      <div class="p-4 font-mono text-sm leading-6 flex-1 overflow-y-auto bg-white font-cjk text-slate-800">
+        <div class="text-slate-400 select-none text-xs mb-2">// Đoạn tài liệu tiếng Trung đang mở của anh:</div>
+        <div class="space-y-0.5">
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">22</span><span>是</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">23</span><span>不是</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">24</span><span>家鄉</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">25</span><span>在</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">26</span><span>市</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">27</span><span>省</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">28</span><span class="cursor-pointer hover:bg-blue-100 rounded px-0.5" onclick="loadWord('仁泽坊')">仁泽坊</span>: Phường Nhơn Trạch</div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">29</span><span class="cursor-pointer hover:bg-blue-100 rounded px-0.5" onclick="loadWord('工业区')">工业区</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">30</span><span>现在</span></div>
+          <!-- Dòng 31 đang bôi đen chữ 住 -->
+          <div id="line-31" class="flex bg-indigo-50/80 -mx-4 px-4 py-0.5 border-l-4 border-indigo-500">
+            <span class="w-8 text-slate-400 select-none text-xs">31</span>
+            <span id="selected-word-highlight" class="bg-indigo-600 text-white font-bold px-1 rounded shadow-xs cursor-pointer" onclick="loadWord('住')">住</span>
+            <span class="ml-2 text-xs text-indigo-500 font-sans italic self-center">← Đang bôi đen từ này</span>
+          </div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">32</span><span>于</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">33</span><span>年</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">34</span><span>出生</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">35</span><span>生日</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">36</span><span>月</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">37</span><span>号</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">38</span><span>虽</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">39</span><span>岁</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">40</span><span>了</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">41</span><span>&nbsp;</span></div>
+          <div class="flex"><span class="w-8 text-slate-400 select-none text-xs">46</span><span>这本书有<span class="cursor-pointer hover:bg-blue-100 rounded px-0.5" onclick="loadWord('万')">万</span><span class="cursor-pointer hover:bg-blue-100 rounded px-0.5" onclick="loadWord('页')">页</span>。</span></div>
+        </div>
+      </div>
+      <div class="bg-slate-100 px-3 py-1.5 border-t border-slate-200 text-[11px] text-slate-500 flex justify-between">
+        <span>Windows (CR LF) | UTF-8</span>
+        <span>Bôi đen chữ rồi nhấn phím tắt (hoặc rê chuột)</span>
+      </div>
+    </section>
+
+    <!-- CỘT PHẢI: BẢN MOCKUP QUICK LOOKUP HUD MỚI (CHUẨN LINGOES DESKTOP) -->
+    <section class="lg:col-span-7 flex flex-col items-center">
+      
+      <!-- CỬA SỔ HUD NỔI ĐỘC LẬP (Mini Floating Window) -->
+      <div id="hud-window" class="w-full max-w-[480px] bg-white rounded-2xl hud-shadow border border-slate-200/90 overflow-hidden flex flex-col transition-all duration-300">
+        
+        <!-- 1. HEADER / TITLEBAR CHUẨN LINGOES (Tối ưu tiện ích hàng đầu) -->
+        <div class="bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 px-3 py-2 border-b border-slate-200 flex items-center justify-between gap-2 select-none">
+          
+          <!-- Nhóm trái: Ô tìm kiếm nhanh & Loa phát âm -->
+          <div class="flex items-center gap-2 flex-1 min-w-0">
+            <!-- Nút phát âm trực tiếp ngay đầu đề -->
+            <button onclick="playCurrentAudio()" class="w-7 h-7 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition-colors shadow-2xs" title="Phát âm từ vựng (Alt + P)">
+              <i data-lucide="volume-2" class="w-4 h-4"></i>
+            </button>
+            
+            <!-- Hộp nhập từ tra cứu nhanh (Quick Word Bar) -->
+            <div class="relative flex-1">
+              <input 
+                id="hud-search-input" 
+                type="text" 
+                value="住" 
+                onkeydown="if(event.key==='Enter') loadWord(this.value)"
+                class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-800 font-cjk focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-2xs pr-7" 
+                placeholder="Nhập chữ cần tra..."
+              />
+              <button onclick="loadWord(document.getElementById('hud-search-input').value)" class="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600">
+                <i data-lucide="search" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Nhóm phải: Các nút tính năng chuẩn Lingoes (History, Pin, Expand, Close) -->
+          <div class="flex items-center gap-1">
+            <!-- Nút lịch sử / từ trước đó -->
+            <button onclick="historyBack()" class="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors" title="Từ trước">
+              <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+            </button>
+            <button onclick="historyForward()" class="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors" title="Từ kế tiếp">
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </button>
+
+            <!-- Nút sao chép toàn bộ nghĩa -->
+            <button onclick="copyDefinitionToClipboard()" class="p-1 rounded-md text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Sao chép toàn bộ giải nghĩa">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            </button>
+
+            <!-- Nút mở rộng ra cửa sổ lớn Main Window -->
+            <button onclick="openInMainWindow()" class="p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Xem chi tiết trên cửa sổ chính">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            </button>
+
+            <div class="w-px h-4 bg-slate-300 mx-0.5"></div>
+
+            <!-- Nút Ghim (Pin) -->
+            <button id="pin-btn" onclick="togglePin()" class="p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Ghim cửa sổ (Không tự đóng khi rời chuột)">
+              <i data-lucide="pin" class="w-3.5 h-3.5"></i>
+            </button>
+
+            <!-- Nút Đóng -->
+            <button onclick="simulateClose()" class="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Đóng (Esc)">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. PHÂN ĐOẠN CÂU JIEBA (Nếu người dùng bôi đen câu hoặc cụm dài) -->
+        <div id="segment-bar-container" class="hidden bg-blue-50/70 px-3 py-1.5 border-b border-blue-100 flex items-center gap-1.5 overflow-x-auto text-xs">
+          <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider shrink-0 flex items-center gap-1">
+            <i data-lucide="scissors" class="w-3 h-3"></i> Tách từ:
+          </span>
+          <div id="segment-tokens-list" class="flex items-center gap-1 font-cjk">
+            <!-- Dynamic tokens -->
+          </div>
+        </div>
+
+        <!-- 3. NỘI DUNG TRA CỨU ĐA TẦNG (Accordion Stacked Dictionaries như Lingoes) -->
+        <div class="p-4 space-y-3 overflow-y-auto max-h-[500px]">
+
+          <!-- SECTION 1: TỪ ĐIỂN TRUNG - VIỆT CHÍNH (Core Dictionary) -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs bg-white">
+            <!-- Tiêu đề từ điển (Collapsible header) -->
+            <div class="bg-slate-50 hover:bg-slate-100/80 px-3 py-1.5 border-b border-slate-200 flex items-center justify-between cursor-pointer select-none transition-colors" onclick="toggleSection('sec-core')">
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                <i data-lucide="book-open" class="w-3.5 h-3.5 text-blue-600"></i>
+                <span>Từ điển Trung - Việt (Hanzii Core)</span>
+              </div>
+              <i id="sec-core-icon" data-lucide="chevron-up" class="w-3.5 h-3.5 text-slate-400"></i>
+            </div>
+            
+            <!-- Chi tiết nội dung từ điển -->
+            <div id="sec-core-body" class="p-3.5 space-y-3">
+              <!-- Header chữ Hán, Pinyin & Âm Hán Việt (Bố cục 2 hàng chuẩn từ điển, chống gãy dòng) -->
+              <div class="border-b border-slate-100 pb-2.5 space-y-1.5">
+                <!-- Hàng 1: Chữ Hán đại tự + Pinyin + Từ loại -->
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex items-baseline gap-2.5 min-w-0">
+                    <span id="entry-hanzi" class="text-3xl font-black text-slate-900 font-cjk tracking-wide whitespace-nowrap shrink-0">住</span>
+                    <span id="entry-pinyin" class="text-sm font-semibold text-blue-600 font-mono whitespace-nowrap">[ zhù ]</span>
+                  </div>
+                  <span id="entry-pos" class="text-[11px] font-medium text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full shrink-0 whitespace-nowrap border border-slate-200/60">Động từ (verb)</span>
+                </div>
+
+                <!-- Hàng 2: Âm Hán Việt + Chữ Phồn thể trên hàng riêng biệt, rộng rãi, tuyệt đối không gãy dòng -->
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span id="entry-hanviet" class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200 shrink-0 whitespace-nowrap inline-flex items-center gap-1 shadow-2xs">
+                    <span class="text-emerald-600 font-normal">Hán Việt:</span>
+                    <span id="entry-hanviet-text">TRÚ</span>
+                  </span>
+                  <span id="entry-traditional-badge" class="hidden text-xs text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200 shrink-0 whitespace-nowrap">
+                    Phồn thể: <span id="entry-traditional-text" class="font-cjk font-bold text-slate-700"></span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Danh sách định nghĩa phân tầng đánh số chuẩn Desktop -->
+              <div class="space-y-2 text-xs text-slate-700 leading-relaxed" id="entry-definitions">
+                <!-- Sẽ được nạp động qua JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2: CHIẾT TỰ & BÚT THUẬN (Radicals & Stroke Order) -->
+          <div id="section-stroke" class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs bg-white">
+            <div class="bg-slate-50 hover:bg-slate-100/80 px-3 py-1.5 border-b border-slate-200 flex items-center justify-between cursor-pointer select-none transition-colors" onclick="toggleSection('sec-stroke')">
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                <i data-lucide="pen-tool" class="w-3.5 h-3.5 text-indigo-600"></i>
+                <span>Chiết tự & Quy tắc bút thuận</span>
+                <span id="char-stroke-count" class="text-[10px] font-medium text-slate-400 bg-slate-200 px-1.5 py-0.2 rounded">7 nét</span>
+              </div>
+              <i id="sec-stroke-icon" data-lucide="chevron-up" class="w-3.5 h-3.5 text-slate-400"></i>
+            </div>
+            <div id="sec-stroke-body" class="p-3 flex items-center justify-around gap-4 bg-slate-50/40">
+              <!-- Khung animation nét viết HanziWriter -->
+              <div class="flex flex-col items-center gap-1.5">
+                <div class="p-1 bg-white border border-slate-200 rounded-xl shadow-inner">
+                  <div id="hanzi-writer-box" class="cursor-pointer" onclick="replayStrokeAnimation()" title="Bấm vào để xem lại nét viết"></div>
+                </div>
+                <button onclick="replayStrokeAnimation()" class="text-[10px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                  <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Viết lại nét
+                </button>
+              </div>
+
+              <!-- Phân tích bộ thủ chi tiết -->
+              <div class="text-xs space-y-1.5 flex-1 pl-2 border-l border-slate-200/80">
+                <div>
+                  <span class="text-slate-400 text-[11px]">Bộ thủ chính:</span>
+                  <div class="font-bold text-slate-800 font-cjk flex items-center gap-1.5 mt-0.5">
+                    <span class="text-base text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200" id="radical-char">亻</span>
+                    <span id="radical-name">Bộ Nhân đứng (rén)</span>
+                  </div>
+                </div>
+                <div class="text-slate-600 text-[11px] leading-snug" id="radical-meaning">
+                  Mang ý nghĩa liên quan đến hành vi hoặc nơi cư ngụ của con người.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 3: TỪ GHÉP & CỤM TỪ PHỔ BIẾN (Collocations / Compounds) -->
+          <div id="section-compounds" class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs bg-white">
+            <div class="bg-slate-50 hover:bg-slate-100/80 px-3 py-1.5 border-b border-slate-200 flex items-center justify-between cursor-pointer select-none transition-colors" onclick="toggleSection('sec-compounds')">
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                <i data-lucide="layers" class="w-3.5 h-3.5 text-amber-600"></i>
+                <span>Từ ghép phổ biến & Cụm từ liên quan</span>
+              </div>
+              <i id="sec-compounds-icon" data-lucide="chevron-up" class="w-3.5 h-3.5 text-slate-400"></i>
+            </div>
+            <div id="sec-compounds-body" class="p-3 space-y-1.5 text-xs">
+              <div id="compounds-list" class="grid grid-cols-2 gap-2">
+                <!-- Nạp động -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 4: CÂU VÍ DỤ SONG NGỮ (Bilingual Examples) -->
+          <div id="section-examples" class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs bg-white">
+            <div class="bg-slate-50 hover:bg-slate-100/80 px-3 py-1.5 border-b border-slate-200 flex items-center justify-between cursor-pointer select-none transition-colors" onclick="toggleSection('sec-examples')">
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                <i data-lucide="message-square" class="w-3.5 h-3.5 text-emerald-600"></i>
+                <span>Câu ví dụ thực tế song ngữ</span>
+              </div>
+              <i id="sec-examples-icon" data-lucide="chevron-up" class="w-3.5 h-3.5 text-slate-400"></i>
+            </div>
+            <div id="sec-examples-body" class="p-3 space-y-2.5">
+              <div id="examples-list" class="space-y-2 text-xs">
+                <!-- Nạp động -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 4. FOOTER THANH TRẠNG THÁI GỌN GÀNG (LOẠI BỎ HOÀN TOÀN NÚT ANKI) -->
+        <div class="bg-slate-50 px-3.5 py-2 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500 select-none">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1 text-emerald-600 font-medium">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Sẵn sàng tra nhanh
+            </span>
+            <span>•</span>
+            <span>Phím tắt: <kbd class="px-1.5 py-0.5 bg-white border border-slate-300 rounded font-mono font-bold text-slate-700">Ctrl+Q</kbd> hoặc <kbd class="px-1.5 py-0.5 bg-white border border-slate-300 rounded font-mono font-bold text-slate-700">Alt+Q</kbd></span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <span class="text-slate-400 hover:text-slate-600 cursor-pointer" onclick="alert('Đã cấu hình tính năng tự động tra khi bôi đen chuột')">
+              <i data-lucide="mouse-pointer" class="w-3.5 h-3.5 inline mr-0.5"></i> Bôi đen là tra
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Toast thông báo nhỏ -->
+      <div id="toast" class="mt-4 opacity-0 transition-opacity duration-300 bg-slate-800 text-white px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 shadow-lg border border-slate-700">
+        <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+        <span id="toast-text">Thông báo</span>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- DỮ LIỆU TỪ VỰNG MẪU & LOGIC TƯƠNG TÁC JAVASCRIPT -->
+  <!-- ========================================================================= -->
+  <script>
+    // Khởi tạo Lucide Icons
+    lucide.createIcons();
+
+    // Cơ sở dữ liệu mẫu cho bản Mockup
+    const MOCKUP_DATABASE = {
+      '住': {
+        simplified: '住',
+        pinyin: '[ zhù ]',
+        hanViet: 'TRÚ',
+        pos: 'Động từ (verb)',
+        strokes: 7,
+        radical: { char: '亻', name: 'Bộ Nhân đứng (rén)', meaning: 'Biểu thị con người hoặc sinh hoạt của con người.' },
+        definitions: [
+          'Ở, cư trú, sinh sống tại một địa điểm (ví dụ: 居住 - cư trú; 住院 - nằm viện).',
+          'Dừng lại, ngừng, ngưng (thường dùng làm bổ ngữ kết quả: 停住 - dừng lại; 记住 - ghi nhớ; 站住 - đứng lại).'
+        ],
+        compounds: [
+          { word: '住房', pinyin: 'zhù fáng', meaning: 'Nhà ở, chỗ ở' },
+          { word: '住址', pinyin: 'zhù zhǐ', meaning: 'Địa chỉ cư trú' },
+          { word: '居住', pinyin: 'jū zhù', meaning: 'Cư trú, sinh sống' },
+          { word: '住宿', pinyin: 'zhù sù', meaning: 'Trọ lại, nghỉ đêm' }
+        ],
+        examples: [
+          { chinese: '你现在住在哪儿？', pinyin: '[ nǐ xiàn zài zhù zài nǎr ]', vi: 'Bây giờ bạn đang sống ở đâu?' },
+          { chinese: '他住在胡志明市。', pinyin: '[ tā zhù zài hú zhì míng shì ]', vi: 'Anh ấy sống ở Thành phố Hồ Chí Minh.' }
+        ]
+      },
+      '页': {
+        simplified: '页',
+        traditional: '頁',
+        pinyin: '[ yè ]',
+        hanViet: 'DIỆP',
+        pos: 'Lượng từ / Danh từ',
+        strokes: 6,
+        radical: { char: '页', name: 'Bộ Hiệt / Diệp (yè)', meaning: 'Nghĩa gốc là đầu người, sau chuyển nghĩa sang trang sách, tờ giấy.' },
+        definitions: [
+          'Trang (lượng từ dùng cho sách, báo, tạp chí, trang web: 第一页 - trang thứ nhất).',
+          'Tờ giấy, mảnh lá mỏng (nghĩa cổ).'
+        ],
+        compounds: [
+          { word: '页面', pinyin: 'yè miàn', meaning: 'Giao diện trang, trang web' },
+          { word: '页码', pinyin: 'yè mǎ', meaning: 'Số trang' },
+          { word: '主页', pinyin: 'zhǔ yè', meaning: 'Trang chủ (homepage)' },
+          { word: '翻页', pinyin: 'fān yè', meaning: 'Lật trang sách' }
+        ],
+        examples: [
+          { chinese: '请翻到第十页。', pinyin: '[ qǐng fān dào dì shí yè ]', vi: 'Xin hãy lật đến trang số 10.' },
+          { chinese: '这本书有万页。', pinyin: '[ zhè běn shū yǒu wàn yè ]', vi: 'Cuốn sách này có vạn trang.' }
+        ]
+      },
+      '有': {
+        simplified: '有',
+        pinyin: '[ yǒu ]',
+        hanViet: 'HỮU',
+        pos: 'Động từ (verb)',
+        strokes: 6,
+        radical: { char: '月', name: 'Bộ Nhục / Nguyệt (yuè)', meaning: 'Nghĩa biểu thị sự sở hữu hoặc tồn tại.' },
+        definitions: [
+          'Có; sở hữu, chiếm giữ (có tiền, có nhà: 我有一本书 - Tôi có một quyển sách).',
+          'Tồn tại, hiện diện tại một nơi (ngăn kéo có sách, trong phòng có người).',
+          'Một số, có một ít (đại từ: 有人 - có người; 有时 - có lúc).'
+        ],
+        compounds: [
+          { word: '有名', pinyin: 'yǒu míng', meaning: 'Nổi tiếng' },
+          { word: '有用', pinyin: 'yǒu yòng', meaning: 'Có ích, hữu dụng' },
+          { word: '有趣', pinyin: 'yǒu qù', meaning: 'Thú vị' },
+          { word: '有时', pinyin: 'yǒu shí', meaning: 'Có khi, đôi lúc' }
+        ],
+        examples: [
+          { chinese: '我有一本汉语词典。', pinyin: '[ wǒ yǒu yī běn hàn yǔ cí diǎn ]', vi: 'Tôi có một cuốn từ điển tiếng Hán.' },
+          { chinese: '这里有人吗？', pinyin: '[ zhè lǐ yǒu rén ma ]', vi: 'Ở đây có người không?' }
+        ]
+      },
+      '本': {
+        simplified: '本',
+        pinyin: '[ běn ]',
+        hanViet: 'BỔN / BẢN',
+        pos: 'Lượng từ / Danh từ',
+        strokes: 5,
+        radical: { char: '木', name: 'Bộ Mộc (mù)', meaning: 'Chữ Chỉ sự: gốc cây có thêm một nét gạch biểu thị cội nguồn, gốc rễ.' },
+        definitions: [
+          'Cuốn, quyển (lượng từ dùng cho sách, vở: 一本书 - một quyển sách).',
+          'Gốc rễ, cội nguồn; căn bản (cơ bản, bản tính, căn bản).',
+          'Vốn liếng; bản thân của mình (tiền vốn, bản nhân, bản quốc).'
+        ],
+        compounds: [
+          { word: '本子', pinyin: 'běn zi', meaning: 'Quyển vở, cuốn sổ' },
+          { word: '本来', pinyin: 'běn lái', meaning: 'Vốn dĩ, ban đầu' },
+          { word: '基本', pinyin: 'jī běn', meaning: 'Cơ bản' },
+          { word: '成本', pinyin: 'chéng běn', meaning: 'Giá vốn, chi phí' }
+        ],
+        examples: [
+          { chinese: '我买了一本书。', pinyin: '[ wǒ mǎi le yī běn shū ]', vi: 'Tôi đã mua một cuốn sách.' },
+          { chinese: '这本书很有用。', pinyin: '[ zhè běn shū hěn yǒu yòng ]', vi: 'Quyển sách này rất hữu ích.' }
+        ]
+      },
+      '仁泽坊': {
+        simplified: '仁泽坊',
+        traditional: '仁澤坊',
+        pinyin: '[ rén zé fāng ]',
+        hanViet: 'NHƠN TRẠCH PHƯỜNG',
+        pos: 'Địa danh (Proper Noun)',
+        strokes: 0,
+        radical: { char: '亻', name: 'Tổ hợp từ', meaning: 'Địa danh hành chính' },
+        definitions: [
+          'Phường Nhơn Trạch (đơn vị hành chính cấp xã/phường thuộc huyện Nhơn Trạch, tỉnh Đồng Nai).',
+          'Khu vực tập trung nhiều khu công nghiệp và nhà máy sản xuất.'
+        ],
+        compounds: [
+          { word: '同奈省', pinyin: 'tóng nài shěng', meaning: 'Tỉnh Đồng Nai' },
+          { word: '仁泽工业区', pinyin: 'rén zé gōng yè qū', meaning: 'Khu công nghiệp Nhơn Trạch' }
+        ],
+        examples: [
+          { chinese: '他在仁泽坊的一家工厂上班。', pinyin: '[ tā zài rén zé fāng de yī jiā gōng chǎng shàng bān ]', vi: 'Anh ấy đi làm ở một nhà máy tại Phường Nhơn Trạch.' }
+        ]
+      },
+      '工业区': {
+        simplified: '工业区',
+        traditional: '工業區',
+        pinyin: '[ gōng yè qū ]',
+        hanViet: 'CÔNG NGHIỆP KHU',
+        pos: 'Danh từ (Noun)',
+        strokes: 0,
+        radical: { char: '工', name: 'Cụm danh từ', meaning: 'Khu vực sản xuất công nghiệp' },
+        definitions: [
+          'Khu công nghiệp (khu vực quy hoạch riêng dành cho sản xuất công nghiệp, nhà máy, xí nghiệp).'
+        ],
+        compounds: [
+          { word: '工厂', pinyin: 'gōng chǎng', meaning: 'Nhà máy, công xưởng' },
+          { word: '工人', pinyin: 'gōng rén', meaning: 'Công nhân' },
+          { word: '工业', pinyin: 'gōng yè', meaning: 'Ngành công nghiệp' }
+        ],
+        examples: [
+          { chinese: '工业区有很多工人。', pinyin: '[ gōng yè qū yǒu hěn duō gōng rén ]', vi: 'Khu công nghiệp có rất nhiều công nhân.' }
+        ]
+      }
+    };
+
+    let currentWriter = null;
+    let isPinned = false;
+    let searchHistory = ['住'];
+    let historyIndex = 0;
+
+    // Hàm nạp từ vựng vào bảng Quick Lookup
+    function loadWord(word) {
+      if (!word) return;
+      const data = MOCKUP_DATABASE[word] || {
+        simplified: word,
+        pinyin: '[ ' + word + ' ]',
+        hanViet: 'Hán Việt: ĐANG CẬP NHẬT',
+        pos: 'Từ vựng',
+        strokes: 0,
+        radical: { char: '-', name: 'Đang cập nhật', meaning: 'Đang tải thêm từ điển ngoại vi...' },
+        definitions: ['Đang tìm kiếm thông tin chi tiết từ các nguồn từ điển mở rộng...'],
+        compounds: [],
+        examples: []
+      };
+
+      // Cập nhật ô tìm kiếm & Text highlight
+      document.getElementById('hud-search-input').value = data.simplified;
+      const highlight = document.getElementById('selected-word-highlight');
+      if (highlight) highlight.textContent = data.simplified;
+
+      // Cập nhật Header với dynamic font size & chống gãy dòng tuyệt đối
+      const hanziEl = document.getElementById('entry-hanzi');
+      hanziEl.textContent = data.simplified;
+      if (data.simplified.length === 1) {
+        hanziEl.className = 'text-3xl font-black text-slate-900 font-cjk tracking-wide whitespace-nowrap shrink-0';
+      } else if (data.simplified.length <= 4) {
+        hanziEl.className = 'text-2xl font-black text-slate-900 font-cjk tracking-wide whitespace-nowrap shrink-0';
+      } else {
+        hanziEl.className = 'text-xl font-bold text-slate-900 font-cjk tracking-wide whitespace-nowrap shrink-0';
+      }
+
+      document.getElementById('entry-pinyin').textContent = data.pinyin;
+      const cleanHanViet = (data.hanViet || '').replace(/^Hán Việt:\s*/i, '');
+      document.getElementById('entry-hanviet-text').textContent = cleanHanViet;
+      document.getElementById('entry-pos').textContent = data.pos || 'Từ vựng';
+
+      const tradBadge = document.getElementById('entry-traditional-badge');
+      const tradText = document.getElementById('entry-traditional-text');
+      if (data.traditional && data.traditional !== data.simplified) {
+        tradBadge.classList.remove('hidden');
+        tradText.textContent = data.traditional;
+      } else {
+        tradBadge.classList.add('hidden');
+      }
+
+      // Cập nhật Danh sách định nghĩa
+      const defsContainer = document.getElementById('entry-definitions');
+      defsContainer.innerHTML = data.definitions.map((def, idx) => `
+        <div class="flex items-start gap-2">
+          <span class="w-4 h-4 rounded bg-slate-100 text-slate-600 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5 border border-slate-200">${idx + 1}</span>
+          <p class="text-slate-800 leading-relaxed font-normal">${def}</p>
+        </div>
+      `).join('');
+
+      // Cập nhật Chiết tự & Bút thuận
+      const strokeSection = document.getElementById('section-stroke');
+      if (data.simplified.length === 1 && typeof HanziWriter !== 'undefined') {
+        strokeSection.classList.remove('hidden');
+        document.getElementById('char-stroke-count').textContent = data.strokes ? data.strokes + ' nét' : 'Chi tiết';
+        document.getElementById('radical-char').textContent = data.radical.char;
+        document.getElementById('radical-name').textContent = data.radical.name;
+        document.getElementById('radical-meaning').textContent = data.radical.meaning;
+
+        // Render HanziWriter
+        const box = document.getElementById('hanzi-writer-box');
+        box.innerHTML = '';
+        try {
+          currentWriter = HanziWriter.create('hanzi-writer-box', data.simplified, {
+            width: 85,
+            height: 85,
+            padding: 5,
+            showOutline: true,
+            strokeAnimationSpeed: 1.2,
+            delayBetweenStrokes: 120,
+            strokeColor: '#2563eb',
+            radicalColor: '#059669',
+            outlineColor: '#cbd5e1'
+          });
+          currentWriter.animateCharacter();
+        } catch (e) {
+          console.warn(e);
+        }
+      } else {
+        strokeSection.classList.add('hidden');
+      }
+
+      // Cập nhật Từ ghép
+      const compSection = document.getElementById('section-compounds');
+      const compList = document.getElementById('compounds-list');
+      if (data.compounds && data.compounds.length > 0) {
+        compSection.classList.remove('hidden');
+        compList.innerHTML = data.compounds.map(item => `
+          <div class="bg-slate-50 hover:bg-blue-50/60 p-2 rounded-lg border border-slate-200/80 transition-colors cursor-pointer" onclick="loadWord('${item.word}')">
+            <div class="flex items-baseline justify-between">
+              <span class="font-bold text-slate-800 font-cjk text-xs">${item.word}</span>
+              <span class="text-[10px] font-mono text-blue-600">${item.pinyin}</span>
+            </div>
+            <div class="text-[11px] text-slate-500 mt-0.5 truncate">${item.meaning}</div>
+          </div>
+        `).join('');
+      } else {
+        compSection.classList.add('hidden');
+      }
+
+      // Cập nhật Ví dụ song ngữ
+      const exSection = document.getElementById('section-examples');
+      const exList = document.getElementById('examples-list');
+      if (data.examples && data.examples.length > 0) {
+        exSection.classList.remove('hidden');
+        exList.innerHTML = data.examples.map(ex => `
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200/80 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-800 font-cjk text-xs">${ex.chinese}</span>
+              <button onclick="playCustomAudio('${ex.chinese}')" class="text-slate-400 hover:text-blue-600">
+                <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+            <div class="text-[11px] font-mono text-blue-600">${ex.pinyin}</div>
+            <div class="text-[11px] text-slate-600">${ex.vi}</div>
+          </div>
+        `).join('');
+      } else {
+        exSection.classList.add('hidden');
+      }
+
+      // Cập nhật lại icons
+      lucide.createIcons();
+
+      // Lưu lịch sử
+      if (searchHistory[historyIndex] !== data.simplified) {
+        searchHistory = searchHistory.slice(0, historyIndex + 1);
+        searchHistory.push(data.simplified);
+        historyIndex = searchHistory.length - 1;
+      }
+
+      showToast(`⚡ Đã tra từ [${data.simplified}] thành công`);
+    }
+
+    // Viết lại nét chữ
+    function replayStrokeAnimation() {
+      if (currentWriter) {
+        currentWriter.animateCharacter();
+      }
+    }
+
+    // Bật tắt thu gọn từng phần (Collapsible sections)
+    function toggleSection(secId) {
+      const body = document.getElementById(secId + '-body');
+      const icon = document.getElementById(secId + '-icon');
+      if (!body) return;
+      if (body.classList.contains('hidden')) {
+        body.classList.remove('hidden');
+        if (icon) icon.setAttribute('data-lucide', 'chevron-up');
+      } else {
+        body.classList.add('hidden');
+        if (icon) icon.setAttribute('data-lucide', 'chevron-down');
+      }
+      lucide.createIcons();
+    }
+
+    // Ghim cửa sổ
+    function togglePin() {
+      isPinned = !isPinned;
+      const btn = document.getElementById('pin-btn');
+      if (isPinned) {
+        btn.classList.add('text-blue-600', 'bg-blue-100', 'shadow-xs');
+        btn.classList.remove('text-slate-400');
+        showToast('📌 Đã ghim HUD (Cửa sổ cố định, không tự đóng)');
+      } else {
+        btn.classList.remove('text-blue-600', 'bg-blue-100', 'shadow-xs');
+        btn.classList.add('text-slate-400');
+        showToast('🔓 Đã bỏ ghim HUD (Tự đóng khi rời chuột)');
+      }
+    }
+
+    // Điều hướng lịch sử tra từ
+    function historyBack() {
+      if (historyIndex > 0) {
+        historyIndex--;
+        loadWord(searchHistory[historyIndex]);
+      } else {
+        showToast('Đang ở từ đầu tiên');
+      }
+    }
+    function historyForward() {
+      if (historyIndex < searchHistory.length - 1) {
+        historyIndex++;
+        loadWord(searchHistory[historyIndex]);
+      } else {
+        showToast('Đang ở từ mới nhất');
+      }
+    }
+
+    // Giả lập phát âm TTS
+    function playCurrentAudio() {
+      const hanzi = document.getElementById('entry-hanzi').textContent;
+      playCustomAudio(hanzi);
+    }
+    function playCustomAudio(text) {
+      if ('speechSynthesis' in window) {
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'zh-CN';
+        window.speechSynthesis.speak(utter);
+      }
+      showToast(`🔊 Đang phát âm: ${text}`);
+    }
+
+    // Sao chép giải nghĩa
+    function copyDefinitionToClipboard() {
+      const hanzi = document.getElementById('entry-hanzi').textContent;
+      const pinyin = document.getElementById('entry-pinyin').textContent;
+      const hanviet = document.getElementById('entry-hanviet').textContent;
+      const defs = Array.from(document.querySelectorAll('#entry-definitions p')).map(p => p.textContent).join('\n');
+      const fullText = `${hanzi} ${pinyin}\n${hanviet}\n${defs}`;
+      navigator.clipboard.writeText(fullText).then(() => {
+        showToast('📋 Đã sao chép toàn bộ giải nghĩa vào Clipboard!');
+      });
+    }
+
+    // Mở trên Main Window
+    function openInMainWindow() {
+      showToast('🖥️ Đang chuyển sang cửa sổ chính (Main Window)');
+    }
+
+    // Giả lập đóng
+    function simulateClose() {
+      const hud = document.getElementById('hud-window');
+      hud.style.opacity = '0.3';
+      hud.style.transform = 'scale(0.95)';
+      showToast('🚪 Cửa sổ đóng lại (Bấm từ ở Notepad++ để hiện lại)');
+      setTimeout(() => {
+        hud.style.opacity = '1';
+        hud.style.transform = 'scale(1)';
+      }, 1000);
+    }
+
+    // Toast
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const text = document.getElementById('toast-text');
+      text.textContent = msg;
+      toast.classList.remove('opacity-0');
+      toast.classList.add('opacity-100');
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0');
+      }, 2500);
+    }
+
+    // Tự động load từ 住 lúc đầu
+    window.addEventListener('DOMContentLoaded', () => {
+      loadWord('住');
+    });
+  </script>
+</body>
+</html>
