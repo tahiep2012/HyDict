@@ -85,7 +85,12 @@ export const SystemTrayModal: React.FC<SystemTrayModalProps> = ({
 
           <button
             onClick={() => {
-              onShowToast('🚪 Đã gửi tín hiệu thoát hoàn toàn ứng dụng.');
+              if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
+                import('@tauri-apps/api/core')
+                  .then(({ invoke }) => invoke('exit_app'))
+                  .catch(() => {});
+              }
+              onShowToast('🚪 Đang thoát hoàn toàn ứng dụng...');
               onClose();
             }}
             className="w-full text-left px-3 py-2 rounded-xl hover:bg-rose-50 text-rose-600 flex items-center gap-2.5 transition-colors font-medium"

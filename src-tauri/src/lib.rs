@@ -261,6 +261,11 @@ fn open_main_window(app: tauri::AppHandle, word: Option<String>) {
 }
 
 #[tauri::command]
+fn exit_app() {
+    std::process::exit(0);
+}
+
+#[tauri::command]
 fn open_snipper_window(app: tauri::AppHandle) {
     if let Some(snipper) = app.get_webview_window("snipper") {
         let (vx, vy, vw, vh) = screen_capture::get_virtual_screen_bounds();
@@ -457,7 +462,7 @@ pub fn run() {
                             }
                         }
                         "quit" => {
-                            app.exit(0);
+                            std::process::exit(0);
                         }
                         _ => {}
                     }
@@ -535,6 +540,7 @@ pub fn run() {
             hide_hud_window,
             set_hud_pinned,
             open_main_window,
+            exit_app,
             open_snipper_window,
             hide_snipper_window,
             execute_screen_ocr,
@@ -546,10 +552,5 @@ pub fn run() {
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|_app_handle, event| match event {
-            tauri::RunEvent::ExitRequested { api, .. } => {
-                api.prevent_exit();
-            }
-            _ => {}
-        });
+        .run(|_app_handle, _event| {});
 }
