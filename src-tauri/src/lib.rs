@@ -359,6 +359,18 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
+        .on_menu_event(|app, event| {
+            if event.id == "quit" || event.id.as_ref() == "quit" {
+                std::process::exit(0);
+            }
+            if event.id == "show" || event.id.as_ref() == "show" {
+                if let Some(main_window) = app.get_webview_window("main") {
+                    let _ = main_window.show();
+                    let _ = main_window.unminimize();
+                    let _ = main_window.set_focus();
+                }
+            }
+        })
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(move |app, shortcut, event| {
