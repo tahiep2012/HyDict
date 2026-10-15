@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Copy,
   ExternalLink,
+  Star,
 } from 'lucide-react';
 
 export interface HudTitlebarProps {
@@ -28,6 +29,8 @@ export interface HudTitlebarProps {
   canHistoryForward?: boolean;
   onCopyDefinition?: () => void;
   onOpenMainWindow?: () => void;
+  isBookmarked?: boolean;
+  onToggleBookmark?: () => void;
 }
 
 export const HudTitlebar: React.FC<HudTitlebarProps> = ({
@@ -46,6 +49,8 @@ export const HudTitlebar: React.FC<HudTitlebarProps> = ({
   canHistoryForward = false,
   onCopyDefinition,
   onOpenMainWindow,
+  isBookmarked = false,
+  onToggleBookmark,
 }) => {
   const isLingoesMode = searchTerm !== undefined || onSearchSubmit !== undefined;
 
@@ -151,6 +156,29 @@ export const HudTitlebar: React.FC<HudTitlebarProps> = ({
               </button>
             )}
 
+            {onToggleBookmark && (
+              <button
+                type="button"
+                onClick={onToggleBookmark}
+                className={`p-1 rounded-md transition-all cursor-pointer ${
+                  isBookmarked
+                    ? 'text-amber-500 bg-amber-50 hover:bg-amber-100 shadow-2xs'
+                    : 'text-slate-400 hover:text-amber-500 hover:bg-amber-50/60'
+                }`}
+                title={
+                  isBookmarked
+                    ? 'Bỏ lưu khỏi Sổ tay từ yêu thích'
+                    : 'Lưu vào Sổ tay từ yêu thích (⭐)'
+                }
+              >
+                <Star
+                  className={`w-3.5 h-3.5 transition-all ${
+                    isBookmarked ? 'fill-amber-400 text-amber-500 scale-110' : ''
+                  }`}
+                />
+              </button>
+            )}
+
             <div className="w-px h-4 bg-slate-300 mx-0.5" />
 
             <button
@@ -184,6 +212,29 @@ export const HudTitlebar: React.FC<HudTitlebarProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5">
+            {onToggleBookmark && (
+              <button
+                type="button"
+                onClick={onToggleBookmark}
+                className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                  isBookmarked
+                    ? 'text-amber-500 bg-amber-50 hover:bg-amber-100 shadow-2xs'
+                    : 'text-slate-400 hover:text-amber-500 hover:bg-amber-50/60'
+                }`}
+                title={
+                  isBookmarked
+                    ? 'Bỏ lưu khỏi Sổ tay từ yêu thích'
+                    : 'Lưu vào Sổ tay từ yêu thích (⭐)'
+                }
+              >
+                <Star
+                  className={`w-3.5 h-3.5 transition-all ${
+                    isBookmarked ? 'fill-amber-400 text-amber-500 scale-110' : ''
+                  }`}
+                />
+              </button>
+            )}
+
             <button
               type="button"
               onClick={onTogglePin}

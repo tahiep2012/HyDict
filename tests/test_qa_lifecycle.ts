@@ -256,6 +256,65 @@ assert(DEFAULT_APP_SETTINGS.enableCursorCapture === true, 'Mặc định kích h
 assert(DEFAULT_APP_SETTINGS.filterCjkOnly === true, 'Mặc định kích hoạt bộ lọc ký tự thông minh CJK');
 assert(DEFAULT_APP_SETTINGS.ankiDeck === 'Tiếng Trung (HSK 1 - 6)', 'Deck Anki mặc định là Tiếng Trung (HSK 1 - 6)');
 
+// Tests cho module 10-favorites-history (EPIC-10)
+import {
+  addFavorite,
+  removeFavorite,
+  isFavorite,
+  addHistoryItem,
+  filterFavorites,
+  filterHistory,
+  MAX_HISTORY_ITEMS,
+} from '../src/modules/notebook';
+
+const initialFavs: any[] = [];
+const fav1 = addFavorite(initialFavs, {
+  word: '学习',
+  pinyin: 'xué xí',
+  hanViet: 'HỌC TẬP',
+  definition: 'Học tập; nghiên cứu',
+});
+assert(fav1.length === 1 && fav1[0].word === '学习', '[Notebook] Thêm từ vào danh sách yêu thích thành công');
+assert(isFavorite(fav1, '学习') === true, '[Notebook] isFavorite trả về true cho từ đã lưu');
+assert(isFavorite(fav1, '工作') === false, '[Notebook] isFavorite trả về false cho từ chưa lưu');
+
+// Thêm trùng lặp cập nhật lên đầu không trùng
+const fav2 = addFavorite(fav1, {
+  word: '万',
+  pinyin: 'wàn',
+  hanViet: 'VẠN',
+  definition: 'Mười nghìn',
+});
+assert(fav2.length === 2 && fav2[0].word === '万', '[Notebook] Từ mới được đưa lên đầu danh sách yêu thích');
+
+const fav3 = addFavorite(fav2, {
+  word: '学习',
+  pinyin: 'xué xí',
+  hanViet: 'HỌC TẬP',
+  definition: 'Học tập; nghiên cứu chuyên sâu',
+});
+assert(fav3.length === 2 && fav3[0].word === '学习', '[Notebook] Thêm lại từ cũ đưa lên đầu không bị trùng lặp');
+
+const favRemoved = removeFavorite(fav3, '学习');
+assert(favRemoved.length === 1 && favRemoved[0].word === '万', '[Notebook] Xóa từ khỏi danh sách yêu thích thành công');
+
+// Lọc từ yêu thích
+const filteredFav = filterFavorites(fav3, 'nghiên cứu');
+assert(filteredFav.length === 1 && filteredFav[0].word === '学习', '[Notebook] filterFavorites tìm đúng theo nội dung giải nghĩa');
+
+// Lịch sử tra cứu & giới hạn 100 mục
+let histList: any[] = [];
+histList = addHistoryItem(histList, { word: '万', pinyin: 'wàn', hanViet: 'VẠN' });
+assert(histList.length === 1 && histList[0].word === '万', '[History] Thêm từ vào lịch sử tra cứu thành công');
+
+// Giới hạn maxItems
+let cappedList: any[] = [];
+for (let i = 0; i < 110; i++) {
+  cappedList = addHistoryItem(cappedList, { word: `word_${i}`, pinyin: `pinyin_${i}`, hanViet: `HV_${i}` }, 100);
+}
+assert(cappedList.length === 100, `[History] Lịch sử tra cứu giới hạn tối đa ${MAX_HISTORY_ITEMS} mục theo chuẩn FIFO`);
+assert(cappedList[0].word === 'word_109', '[History] Mục tra cứu mới nhất luôn ở đầu danh sách');
+
 // -------------------------------------------------------------
 // TẦNG 2: INTEGRATION TESTS
 // -------------------------------------------------------------
@@ -381,6 +440,14 @@ assert(fs.existsSync(path.join(mainWindowUiDir, 'HotkeyCaptureTab.tsx')), 'Compo
 assert(fs.existsSync(path.join(mainWindowUiDir, 'AnkiConfigTab.tsx')), 'Component AnkiConfigTab.tsx tồn tại');
 assert(fs.existsSync(path.join(mainWindowUiDir, 'SystemSettingsTab.tsx')), 'Component SystemSettingsTab.tsx tồn tại');
 assert(fs.existsSync(path.join(mainWindowUiDir, 'SystemTrayModal.tsx')), 'Component SystemTrayModal.tsx tồn tại');
+
+const notebookUiDir = path.resolve(process.cwd(), 'src/modules/notebook/components');
+assert(fs.existsSync(path.join(notebookUiDir, 'BookmarkButton.tsx')), 'Component BookmarkButton.tsx tồn tại');
+assert(fs.existsSync(path.join(notebookUiDir, 'NotebookTab.tsx')), 'Component NotebookTab.tsx tồn tại');
+assert(fs.existsSync(path.resolve(process.cwd(), 'src/modules/notebook/hooks/useNotebook.ts')), 'Hook useNotebook.ts tồn tại');
+
+const mainWindowLayoutContent = fs.readFileSync(path.join(mainWindowUiDir, 'MainWindowLayout.tsx'), 'utf-8');
+assert(mainWindowLayoutContent.includes('notebook'), 'MainWindowLayout tích hợp tab Sổ Từ & Lịch Sử (notebook)');
 
 // -------------------------------------------------------------
 // TẦNG 4: STRESS & BOUNDARY TESTS

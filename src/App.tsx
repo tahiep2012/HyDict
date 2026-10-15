@@ -10,6 +10,7 @@ import {
   HudLingoesContent,
 } from '@/modules/popup-hud';
 import { useAudioPlayback } from '@/modules/tts-audio';
+import { useNotebook } from '@/modules/notebook';
 
 // ============================================================================
 // 1. STANDALONE HUD WINDOW (Cửa sổ Quick Lookup mini độc lập chuẩn Lingoes)
@@ -34,6 +35,37 @@ const StandaloneHudApp: React.FC = () => {
 
   const { entry, status, lookup } = useDictionaryLookup(activeWord || targetText);
   const { playAudio } = useAudioPlayback();
+  const { isFavorite, toggleFavorite, addHistory: addSearchHistory } = useNotebook();
+
+  // Tự động ghi lại lịch sử tra cứu mỗi khi tải được từ vựng hợp lệ
+  useEffect(() => {
+    if (entry && entry.simplified) {
+      addSearchHistory({
+        word: entry.simplified,
+        pinyin: entry.pinyin,
+        hanViet: entry.hanViet,
+      });
+    }
+  }, [entry?.simplified, entry?.pinyin, entry?.hanViet, addSearchHistory]);
+
+  const currentWord = entry?.simplified || activeWord || targetText;
+  const isBookmarked = isFavorite(currentWord);
+
+  const handleToggleBookmark = () => {
+    if (!currentWord) return;
+    const willBeSaved = !isBookmarked;
+    toggleFavorite({
+      word: currentWord,
+      pinyin: entry?.pinyin || '',
+      hanViet: entry?.hanViet || '',
+      definition: entry?.definitions?.join('; ') || '',
+    });
+    showToast(
+      willBeSaved
+        ? `⭐ Đã thêm [${currentWord}] vào Sổ tay từ yêu thích!`
+        : `🗑️ Đã xóa [${currentWord}] khỏi Sổ tay từ yêu thích`
+    );
+  };
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -239,6 +271,8 @@ const StandaloneHudApp: React.FC = () => {
         canHistoryForward={historyIdx < history.length - 1}
         onCopyDefinition={handleCopyDefinition}
         onOpenMainWindow={handleOpenInMainWindow}
+        isBookmarked={isBookmarked}
+        onToggleBookmark={handleToggleBookmark}
       >
         <HudLingoesContent
           entry={entry}
@@ -282,6 +316,17 @@ const MainWindowApp: React.FC = () => {
 
   const { entry, lookup } = useDictionaryLookup(searchQuery || '万');
   const { playAudio } = useAudioPlayback();
+  const { addHistory: addSearchHistory } = useNotebook();
+
+  useEffect(() => {
+    if (entry && entry.simplified) {
+      addSearchHistory({
+        word: entry.simplified,
+        pinyin: entry.pinyin,
+        hanViet: entry.hanViet,
+      });
+    }
+  }, [entry?.simplified, entry?.pinyin, entry?.hanViet, addSearchHistory]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);

@@ -21,6 +21,8 @@ export interface HudWindowContainerProps {
   canHistoryForward?: boolean;
   onCopyDefinition?: () => void;
   onOpenMainWindow?: () => void;
+  isBookmarked?: boolean;
+  onToggleBookmark?: () => void;
 }
 
 export const HudWindowContainer: React.FC<HudWindowContainerProps> = ({
@@ -41,6 +43,8 @@ export const HudWindowContainer: React.FC<HudWindowContainerProps> = ({
   canHistoryForward,
   onCopyDefinition,
   onOpenMainWindow,
+  isBookmarked,
+  onToggleBookmark,
 }) => {
   if (!isOpen) return null;
 
@@ -65,6 +69,8 @@ export const HudWindowContainer: React.FC<HudWindowContainerProps> = ({
         canHistoryForward={canHistoryForward}
         onCopyDefinition={onCopyDefinition}
         onOpenMainWindow={onOpenMainWindow}
+        isBookmarked={isBookmarked}
+        onToggleBookmark={onToggleBookmark}
       />
       <div className="p-3.5 overflow-y-auto max-h-[500px] space-y-3 bg-white">
         {children}

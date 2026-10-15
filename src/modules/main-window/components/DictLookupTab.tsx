@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useDictionaryLookup } from '@/modules/dictionary';
 import { useAudioPlayback } from '@/modules/tts-audio';
 import { AddToAnkiButton } from '@/modules/anki-bridge';
+import { BookmarkButton } from '@/modules/notebook';
 import { HanziWriterCanvas } from '@/modules/stroke-writer';
 import { Button, Card, Badge } from '@/components/ui';
 import { Search, Volume2, Sparkles, Clock } from 'lucide-react';
@@ -112,18 +113,35 @@ export const DictLookupTab: React.FC<DictLookupTabProps> = ({
               </div>
             </div>
 
-            <AddToAnkiButton
-              fields={{
-                Hanzi: entry.simplified,
-                Pinyin: entry.pinyin,
-                HanViet: entry.hanViet,
-                Meaning: entry.definitions.join('; '),
-                Example: entry.examples[0]?.chinese || '',
-              }}
-              onSuccess={() =>
-                onShowToast(`✅ Đã thêm [${entry.simplified}] vào bộ thẻ Anki!`)
-              }
-            />
+            <div className="flex items-center gap-2">
+              <BookmarkButton
+                wordItem={{
+                  word: entry.simplified,
+                  pinyin: entry.pinyin,
+                  hanViet: entry.hanViet,
+                  definition: entry.definitions.join('; '),
+                }}
+                onToggle={(isSaved) =>
+                  onShowToast(
+                    isSaved
+                      ? `⭐ Đã thêm [${entry.simplified}] vào Sổ tay từ yêu thích!`
+                      : `🗑️ Đã xóa [${entry.simplified}] khỏi Sổ tay từ yêu thích`
+                  )
+                }
+              />
+              <AddToAnkiButton
+                fields={{
+                  Hanzi: entry.simplified,
+                  Pinyin: entry.pinyin,
+                  HanViet: entry.hanViet,
+                  Meaning: entry.definitions.join('; '),
+                  Example: entry.examples[0]?.chinese || '',
+                }}
+                onSuccess={() =>
+                  onShowToast(`✅ Đã thêm [${entry.simplified}] vào bộ thẻ Anki!`)
+                }
+              />
+            </div>
           </div>
 
           {/* Stroke Animation if single char */}

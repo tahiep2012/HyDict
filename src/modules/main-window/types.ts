@@ -1,4 +1,4 @@
-export type MainWindowTab = 'dict' | 'hotkey' | 'anki' | 'settings';
+export type MainWindowTab = 'dict' | 'notebook' | 'hotkey' | 'anki' | 'settings';
 
 export type CaptureMode = 'bubble' | 'instant' | 'alt_hold';
 

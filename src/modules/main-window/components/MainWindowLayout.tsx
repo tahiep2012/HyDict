@@ -6,7 +6,8 @@ import { HotkeyCaptureTab } from './HotkeyCaptureTab';
 import { AnkiConfigTab } from './AnkiConfigTab';
 import { SystemSettingsTab } from './SystemSettingsTab';
 import { SystemTrayModal } from './SystemTrayModal';
-import { BookOpen, Zap, Settings, Layers, ExternalLink, Sparkles } from 'lucide-react';
+import { BookOpen, Zap, Settings, Layers, ExternalLink, Sparkles, Bookmark } from 'lucide-react';
+import { NotebookTab } from '@/modules/notebook';
 
 export interface MainWindowLayoutProps {
   activeTab: MainWindowTab;
@@ -62,7 +63,19 @@ export const MainWindowLayout: React.FC<MainWindowLayoutProps> = ({
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span>Tra Từ & Lịch Sử</span>
+            <span>Tra Cứu Từ Điển</span>
+          </button>
+
+          <button
+            onClick={() => onSelectTab('notebook')}
+            className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition-all ${
+              activeTab === 'notebook'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:bg-slate-200/70'
+            }`}
+          >
+            <Bookmark className="w-4 h-4" />
+            <span>Sổ Từ & Lịch Sử</span>
           </button>
 
           <button
@@ -145,6 +158,15 @@ export const MainWindowLayout: React.FC<MainWindowLayoutProps> = ({
           <DictLookupTab
             recentSearches={recentSearches}
             onSelectWord={onSelectWord}
+            onShowToast={onShowToast}
+          />
+        )}
+        {activeTab === 'notebook' && (
+          <NotebookTab
+            onSelectWord={(word) => {
+              onSelectWord(word);
+              onSelectTab('dict');
+            }}
             onShowToast={onShowToast}
           />
         )}
