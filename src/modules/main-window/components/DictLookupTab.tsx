@@ -4,7 +4,7 @@ import { useAudioPlayback } from '@/modules/tts-audio';
 import { AddToAnkiButton } from '@/modules/anki-bridge';
 import { BookmarkButton } from '@/modules/notebook';
 import { HanziWriterCanvas } from '@/modules/stroke-writer';
-import { Button, Card, Badge } from '@/components/ui';
+import { Button, Card, Badge, SearchInput } from '@/components/ui';
 import { Search, Volume2, Sparkles, Clock, Globe, BookOpen, Layers } from 'lucide-react';
 
 export interface DictLookupTabProps {
@@ -139,9 +139,8 @@ export const DictLookupTab: React.FC<DictLookupTabProps> = ({
 
       {/* Search Input Bar with Auto-suggestions */}
       <div className="relative" ref={suggestionsRef}>
-        <form onSubmit={handleSearch} className="relative">
-          <input
-            type="text"
+        <form onSubmit={handleSearch}>
+          <SearchInput
             value={searchInput}
             onFocus={() => {
               if (suggestions.length > 0) setShowSuggestions(true);
@@ -150,18 +149,22 @@ export const DictLookupTab: React.FC<DictLookupTabProps> = ({
               setSearchInput(e.target.value);
               setShowSuggestions(true);
             }}
+            onClear={() => {
+              setSearchInput('');
+              setSuggestions([]);
+            }}
             placeholder="Nhập chữ Hán (学习), Pinyin không dấu (gongzuo), hoặc tiếng Việt (bảo hiểm)..."
-            className="w-full pl-11 pr-28 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-xs"
+            actionButton={
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                className="rounded-xl shadow-xs"
+              >
+                Tra Cứu
+              </Button>
+            }
           />
-          <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5" />
-          <Button
-            type="submit"
-            variant="primary"
-            size="sm"
-            className="absolute right-2 top-2 rounded-xl"
-          >
-            Tra Cứu
-          </Button>
         </form>
 
         {/* Suggestions dropdown */}

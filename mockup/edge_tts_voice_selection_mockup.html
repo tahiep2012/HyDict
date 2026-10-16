@@ -323,7 +323,6 @@
       playBtnText.innerText = 'Đang phát âm...';
       showToast(`🔊 Đang phát: ${info.tag} (${currentRate}x)`);
 
-      // Giả lập phát âm thanh
       let audioUrl = '';
       if (val === 'youdao-female') {
         audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(currentSampleText)}&le=zh`;

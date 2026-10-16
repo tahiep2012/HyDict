@@ -9,12 +9,6 @@
   <style>
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
     .font-cjk { font-family: 'Noto Sans SC', sans-serif; }
-    @keyframes pulse-ring {
-      0% { transform: scale(0.95); opacity: 0.8; }
-      50% { transform: scale(1.15); opacity: 0.3; }
-      100% { transform: scale(0.95); opacity: 0.8; }
-    }
-    .audio-pulsing { animation: pulse-ring 1.5s infinite ease-in-out; }
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen p-4 md:p-8 flex flex-col items-center justify-start text-slate-800">
@@ -246,7 +240,7 @@
 
   <!-- MODAL: Hướng Dẫn Nhận Key Azure Free -->
   <div id="guideModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200 animate-scaleUp">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
           🎁 Hướng Dẫn Nhận 500.000 Ký Tự Azure Miễn Phí Mỗi Tháng
@@ -321,20 +315,17 @@
         voiceTypeBadge.innerText = 'Azure Neural AI';
 
         if (savedAzureKey.trim()) {
-          // Có Key
           warningBox.classList.add('hidden');
           successBox.classList.remove('hidden');
           document.getElementById('successVoiceName').innerText = getVoiceDisplayName(val);
           activeBadge.innerText = 'Azure: ' + getVoiceDisplayName(val);
         } else {
-          // Chưa có Key
           warningBox.classList.remove('hidden');
           successBox.classList.add('hidden');
           document.getElementById('warningVoiceName').innerText = getVoiceDisplayName(val);
           activeBadge.innerText = 'Dự phòng: Google TTS (Thiếu Key)';
         }
       } else {
-        // Giọng miễn phí
         warningBox.classList.add('hidden');
         successBox.classList.add('hidden');
         voiceTypeBadge.className = 'text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200';
@@ -395,7 +386,6 @@
       if (val === 'youdao-female') {
         audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&le=zh`;
       } else {
-        // Google TTS hoặc fallback
         audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=zh-CN&client=tw-ob&q=${encodeURIComponent(text)}`;
       }
 
@@ -434,7 +424,6 @@
       document.getElementById('guideModal').classList.add('hidden');
     }
 
-    // Khởi tạo trạng thái ban đầu
     onVoiceChange();
   </script>
 </body>

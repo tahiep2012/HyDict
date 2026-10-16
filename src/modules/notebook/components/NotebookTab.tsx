@@ -14,7 +14,7 @@ import {
 import { useNotebook } from '../hooks/useNotebook';
 import { filterFavorites, filterHistory } from '../rules';
 import { FavoriteWordItem, SearchHistoryItem } from '../types';
-import { Button, Card, Badge } from '@/components/ui';
+import { Button, Card, Badge, SearchInput, EmptyState, IconButton, PillTabs } from '@/components/ui';
 import { useAudioPlayback } from '@/modules/tts-audio';
 import { ToneColoredPinyin, HskLevelBadge } from '@/modules/dictionary';
 
@@ -101,103 +101,84 @@ export const NotebookTab: React.FC<NotebookTabProps> = ({
         </div>
 
         {/* Sub-tab Switcher */}
-        <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
-          <button
-            type="button"
-            onClick={() => setSubTab('favorites')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-              subTab === 'favorites'
-                ? 'bg-white text-blue-600 shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Star
-              className={`w-3.5 h-3.5 ${
-                subTab === 'favorites' ? 'fill-amber-400 text-amber-500' : ''
-              }`}
-            />
-            <span>Từ Yêu Thích ({favorites.length})</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setSubTab('history')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-              subTab === 'history'
-                ? 'bg-white text-blue-600 shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5" />
-            <span>Lịch Sử ({history.length})</span>
-          </button>
-        </div>
+        <PillTabs<'favorites' | 'history'>
+          tabs={[
+            {
+              id: 'favorites',
+              label: `Từ Yêu Thích (${favorites.length})`,
+              icon: (
+                <Star
+                  className={`w-3.5 h-3.5 ${
+                    subTab === 'favorites' ? 'fill-amber-400 text-amber-500' : ''
+                  }`}
+                />
+              ),
+            },
+            {
+              id: 'history',
+              label: `Lịch Sử (${history.length})`,
+              icon: <Clock className="w-3.5 h-3.5" />,
+            },
+          ]}
+          activeTab={subTab}
+          onChange={setSubTab}
+        />
       </div>
 
-      {/* Search Bar & Actions Toolbar */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="relative flex-1">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={
-              subTab === 'favorites'
-                ? 'Lọc theo chữ Hán, Pinyin, Hán Việt hoặc giải nghĩa...'
-                : 'Lọc lịch sử tra cứu...'
-            }
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-          />
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-        </div>
-
-        {subTab === 'favorites' ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleExportCsv}
-            className="rounded-xl flex items-center gap-1.5 text-xs shrink-0"
-          >
-            <Download className="w-3.5 h-3.5 text-blue-600" />
-            <span>Xuất sang CSV / Anki</span>
-          </Button>
-        ) : (
-          history.length > 0 && (
+      {/* Standardized Search Bar & Actions Toolbar */}
+      <SearchInput
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        onClear={() => setSearchQuery('')}
+        placeholder={
+          subTab === 'favorites'
+            ? 'Lọc theo chữ Hán, Pinyin, Hán Việt hoặc giải nghĩa...'
+            : 'Lọc lịch sử tra cứu...'
+        }
+        actionButton={
+          subTab === 'favorites' ? (
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => {
-                if (window.confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử tra cứu?')) {
-                  clearHistory();
-                  onShowToast('🗑️ Đã xóa toàn bộ lịch sử tra cứu');
-                }
-              }}
-              className="rounded-xl flex items-center gap-1.5 text-xs text-rose-600 hover:bg-rose-50 border-rose-200 shrink-0"
+              onClick={handleExportCsv}
+              className="rounded-xl flex items-center gap-1.5 text-xs shadow-2xs"
             >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Xóa Lịch Sử</span>
+              <Download className="w-3.5 h-3.5 text-blue-600" />
+              <span>Xuất sang CSV / Anki</span>
             </Button>
+          ) : (
+            history.length > 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (window.confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử tra cứu?')) {
+                    clearHistory();
+                    onShowToast('🗑️ Đã xóa toàn bộ lịch sử tra cứu');
+                  }
+                }}
+                className="rounded-xl flex items-center gap-1.5 text-xs text-rose-600 hover:bg-rose-50 border-rose-200 shadow-2xs"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Xóa Lịch Sử</span>
+              </Button>
+            )
           )
-        )}
-      </div>
+        }
+      />
 
       {/* Content Area */}
       {subTab === 'favorites' ? (
         /* Favorites List */
         filteredFavorites.length === 0 ? (
-          <div className="p-12 text-center border-2 border-dashed border-slate-200 rounded-2xl space-y-3">
-            <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto shadow-2xs">
-              <Star className="w-6 h-6 fill-amber-400" />
-            </div>
-            <div className="text-sm font-bold text-slate-700">
-              {searchQuery ? 'Không tìm thấy từ yêu thích phù hợp' : 'Chưa có từ vựng yêu thích nào'}
-            </div>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              Khi tra từ trên cửa sổ HUD hoặc tra từ điển chuyên sâu, bấm icon ngôi sao ⭐ để lưu lại các từ bạn muốn ghi nhớ.
-            </p>
-          </div>
+          <EmptyState
+            icon={<Star className="w-6 h-6 fill-amber-400 text-amber-500" />}
+            iconBg="amber"
+            title={searchQuery ? 'Không tìm thấy từ yêu thích phù hợp' : 'Chưa có từ vựng yêu thích nào'}
+            description="Khi tra từ trên cửa sổ HUD hoặc tra từ điển chuyên sâu, bấm icon ngôi sao ⭐ để lưu lại các từ bạn muốn ghi nhớ."
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {filteredFavorites.map((item) => (
@@ -216,27 +197,25 @@ export const NotebookTab: React.FC<NotebookTabProps> = ({
                         {item.word}
                       </span>
                       <HskLevelBadge word={item.word} />
-                      <button
-                        type="button"
+                      <IconButton
+                        icon={<Volume2 className="w-3.5 h-3.5" />}
+                        variant="ghost"
+                        size="sm"
                         onClick={() => playAudio(item.word)}
-                        className="p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
                         title="Phát âm"
-                      >
-                        <Volume2 className="w-3.5 h-3.5" />
-                      </button>
+                      />
                     </div>
 
-                    <button
-                      type="button"
+                    <IconButton
+                      icon={<Trash2 className="w-3.5 h-3.5 text-rose-500" />}
+                      variant="danger"
+                      size="sm"
                       onClick={() => {
                         removeFavorite(item.id);
                         onShowToast(`🗑️ Đã xóa [${item.word}] khỏi từ yêu thích`);
                       }}
-                      className="text-slate-300 hover:text-rose-500 p-1 rounded-md hover:bg-rose-50 transition-colors cursor-pointer"
                       title="Xóa khỏi sổ tay"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    />
                   </div>
 
                   <div className="flex items-center gap-2 mt-2 flex-wrap">
@@ -281,19 +260,14 @@ export const NotebookTab: React.FC<NotebookTabProps> = ({
       ) : (
         /* History List */
         filteredHistory.length === 0 ? (
-          <div className="p-12 text-center border-2 border-dashed border-slate-200 rounded-2xl space-y-3">
-            <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto shadow-2xs">
-              <Clock className="w-6 h-6" />
-            </div>
-            <div className="text-sm font-bold text-slate-700">
-              {searchQuery ? 'Không tìm thấy lịch sử phù hợp' : 'Chưa có lịch sử tra cứu nào'}
-            </div>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              Mỗi khi bạn tra từ trên cửa sổ Quick HUD hoặc cửa sổ chính, từ vựng sẽ tự động được ghi nhận tại đây (lưu tối đa 100 từ).
-            </p>
-          </div>
+          <EmptyState
+            icon={<Clock className="w-6 h-6 text-slate-400" />}
+            iconBg="slate"
+            title={searchQuery ? 'Không tìm thấy lịch sử phù hợp' : 'Chưa có lịch sử tra cứu nào'}
+            description="Mỗi khi bạn tra từ trên cửa sổ Quick HUD hoặc cửa sổ chính, từ vựng sẽ tự động được ghi nhận tại đây (lưu tối đa 100 từ)."
+          />
         ) : (
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100">
+          <Card variant="default" rounded="2xl" className="overflow-hidden divide-y divide-slate-100">
             {filteredHistory.map((item) => (
               <div
                 key={item.id}
@@ -322,26 +296,24 @@ export const NotebookTab: React.FC<NotebookTabProps> = ({
                   <span className="text-[11px] text-slate-400 hidden md:inline">
                     {formatDate(item.searchedAt)}
                   </span>
-                  <button
-                    type="button"
+                  <IconButton
+                    icon={<Volume2 className="w-3.5 h-3.5" />}
+                    variant="ghost"
+                    size="sm"
                     onClick={() => playAudio(item.word)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
                     title="Phát âm"
-                  >
-                    <Volume2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
+                  />
+                  <IconButton
+                    icon={<Trash2 className="w-3.5 h-3.5 text-rose-500" />}
+                    variant="danger"
+                    size="sm"
                     onClick={() => removeHistory(item.id)}
-                    className="p-1.5 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                     title="Xóa khỏi lịch sử"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  />
                 </div>
               </div>
             ))}
-          </div>
+          </Card>
         )
       )}
     </div>

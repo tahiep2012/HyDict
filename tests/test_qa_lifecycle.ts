@@ -512,7 +512,9 @@ assert(snipperTsx.includes('execute_screen_ocr'), '[Frontend UI] ScreenSnipper.t
 assert(snipperTsx.includes('Escape') && snipperTsx.includes('onContextMenu'), '[Frontend UI] ScreenSnipper.tsx hỗ trợ phím Esc và click phải để hủy');
 
 // Kiểm thử đóng gói Portable Release đầy đủ các tệp DLL runtime phụ thuộc
-const distDir = fs.existsSync(path.resolve(process.cwd(), 'dist-release/HyDict-v2.1.0'))
+const distDir = fs.existsSync(path.resolve(process.cwd(), 'dist-release/HyDict-v2.2.0'))
+  ? path.resolve(process.cwd(), 'dist-release/HyDict-v2.2.0')
+  : fs.existsSync(path.resolve(process.cwd(), 'dist-release/HyDict-v2.1.0'))
   ? path.resolve(process.cwd(), 'dist-release/HyDict-v2.1.0')
   : path.resolve(process.cwd(), 'dist-release/HyDict-v2.0.0');
 if (fs.existsSync(distDir)) {
@@ -531,7 +533,28 @@ const uiDir = path.resolve(process.cwd(), 'src/components/ui');
 assert(fs.existsSync(path.join(uiDir, 'Button.tsx')), 'Atomic Component Button.tsx tồn tại');
 assert(fs.existsSync(path.join(uiDir, 'Card.tsx')), 'Atomic Component Card.tsx tồn tại');
 assert(fs.existsSync(path.join(uiDir, 'Badge.tsx')), 'Atomic Component Badge.tsx tồn tại');
-assert(fs.existsSync(path.join(uiDir, 'index.ts')), 'Thư viện Atomic UI có file index.ts đóng gói');
+assert(fs.existsSync(path.join(uiDir, 'SearchInput.tsx')), 'Atomic Component SearchInput.tsx tồn tại (Chuẩn 48px)');
+assert(fs.existsSync(path.join(uiDir, 'EmptyState.tsx')), 'Atomic Component EmptyState.tsx tồn tại (Khung rỗng nét đứt chuẩn)');
+assert(fs.existsSync(path.join(uiDir, 'IconButton.tsx')), 'Atomic Component IconButton.tsx tồn tại (32x32px vuông vức)');
+assert(fs.existsSync(path.join(uiDir, 'Switch.tsx')), 'Atomic Component Switch.tsx tồn tại (Công tắc toggle mượt mà)');
+assert(fs.existsSync(path.join(uiDir, 'Select.tsx')), 'Atomic Component Select.tsx tồn tại (Dropdown chuẩn)');
+assert(fs.existsSync(path.join(uiDir, 'PillTabs.tsx')), 'Atomic Component PillTabs.tsx tồn tại (Segmented tabs)');
+assert(fs.existsSync(path.join(uiDir, 'Input.tsx')), 'Atomic Component Input.tsx tồn tại (Text input chuẩn)');
+assert(fs.existsSync(path.join(uiDir, 'index.ts')), 'Thư viện Atomic UI có file index.ts đóng gói đầy đủ 10 components');
+
+// Static scan: Zero raw HTML in key screens
+const dictLookupContent = fs.readFileSync(path.resolve(process.cwd(), 'src/modules/main-window/components/DictLookupTab.tsx'), 'utf-8');
+assert(!dictLookupContent.includes('<input'), '[Zero-Raw-HTML] DictLookupTab không chứa thẻ <input> thô (Dùng <SearchInput />)');
+
+const notebookContent = fs.readFileSync(path.resolve(process.cwd(), 'src/modules/notebook/components/NotebookTab.tsx'), 'utf-8');
+assert(!notebookContent.includes('<input'), '[Zero-Raw-HTML] NotebookTab không chứa thẻ <input> thô (Dùng <SearchInput />)');
+assert(!notebookContent.includes('border-dashed'), '[Zero-Raw-HTML] NotebookTab không tự viết khung rỗng dashed (Dùng <EmptyState />)');
+
+const settingsContent = fs.readFileSync(path.resolve(process.cwd(), 'src/modules/main-window/components/SystemSettingsTab.tsx'), 'utf-8');
+assert(!settingsContent.includes('<select'), '[Zero-Raw-HTML] SystemSettingsTab không chứa thẻ <select> thô (Dùng <Select />)');
+
+const ankiConfigContent = fs.readFileSync(path.resolve(process.cwd(), 'src/modules/main-window/components/AnkiConfigTab.tsx'), 'utf-8');
+assert(!ankiConfigContent.includes('<select'), '[Zero-Raw-HTML] AnkiConfigTab không chứa thẻ <select> thô (Dùng <Select />)');
 
 const dictUiDir = path.resolve(process.cwd(), 'src/modules/dictionary/components');
 assert(fs.existsSync(path.join(dictUiDir, 'DefinitionCard.tsx')), 'Component DefinitionCard.tsx tồn tại');

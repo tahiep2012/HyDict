@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button } from '@/components/ui';
+import { Card, Button, Switch, Select, Input } from '@/components/ui';
 import { AppSettings } from '../types';
 import { useAudioPlayback, AzureSpeechConfig, SUPPORTED_TTS_VOICES } from '@/modules/tts-audio';
 import { Volume2, Power, Mic, Sparkles, Key, CheckCircle2, Sliders, Play, RotateCcw } from 'lucide-react';
@@ -131,50 +131,43 @@ export const SystemSettingsTab: React.FC<SystemSettingsTabProps> = ({
 
           <div className="space-y-3">
             {/* Dropdown Menu */}
-            <div className="space-y-1">
-              <label htmlFor="ttsVoiceSelect" className="text-[11px] font-semibold text-slate-600">
-                Danh sách giọng đọc hỗ trợ:
-              </label>
-              <div className="relative">
-                <select
-                  id="ttsVoiceSelect"
-                  value={settings.ttsVoice}
-                  onChange={(e) => {
-                    const newVoice = e.target.value;
-                    onUpdateSetting('ttsVoice', newVoice);
-                    const vObj = SUPPORTED_TTS_VOICES.find((v) => v.id === newVoice);
-                    if (vObj) {
-                      onShowToast(`✅ Đã chuyển sang giọng: ${vObj.name}`);
-                    }
-                  }}
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer hover:bg-slate-100"
-                >
-                  <optgroup label="👨 Giọng Nam Neural AI (Microsoft Edge)">
-                    {SUPPORTED_TTS_VOICES.filter((v) => v.group === 'neural_male').map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.name} - {v.desc}
-                      </option>
-                    ))}
-                  </optgroup>
+            <Select
+              id="ttsVoiceSelect"
+              label="Danh sách giọng đọc hỗ trợ:"
+              value={settings.ttsVoice}
+              onChange={(e) => {
+                const newVoice = e.target.value;
+                onUpdateSetting('ttsVoice', newVoice);
+                const vObj = SUPPORTED_TTS_VOICES.find((v) => v.id === newVoice);
+                if (vObj) {
+                  onShowToast(`✅ Đã chuyển sang giọng: ${vObj.name}`);
+                }
+              }}
+            >
+              <optgroup label="👨 Giọng Nam Neural AI (Microsoft Edge)">
+                {SUPPORTED_TTS_VOICES.filter((v) => v.group === 'neural_male').map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name} - {v.desc}
+                  </option>
+                ))}
+              </optgroup>
 
-                  <optgroup label="👩 Giọng Nữ Neural AI (Microsoft Edge)">
-                    {SUPPORTED_TTS_VOICES.filter((v) => v.group === 'neural_female').map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.name} - {v.desc}
-                      </option>
-                    ))}
-                  </optgroup>
+              <optgroup label="👩 Giọng Nữ Neural AI (Microsoft Edge)">
+                {SUPPORTED_TTS_VOICES.filter((v) => v.group === 'neural_female').map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name} - {v.desc}
+                  </option>
+                ))}
+              </optgroup>
 
-                  <optgroup label="🌐 Nguồn phát âm dự phòng (Fallback Streams)">
-                    {SUPPORTED_TTS_VOICES.filter((v) => v.group === 'fallback').map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.name} - {v.desc}
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-              </div>
-            </div>
+              <optgroup label="🌐 Nguồn phát âm dự phòng (Fallback Streams)">
+                {SUPPORTED_TTS_VOICES.filter((v) => v.group === 'fallback').map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name} - {v.desc}
+                  </option>
+                ))}
+              </optgroup>
+            </Select>
 
             {/* Speed Tuning Slider */}
             <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-2">
@@ -214,12 +207,12 @@ export const SystemSettingsTab: React.FC<SystemSettingsTabProps> = ({
 
             {/* Quick Voice Preview Tester */}
             <div className="pt-1 flex items-center gap-2">
-              <input
-                type="text"
+              <Input
+                size="sm"
                 value={testSentence}
                 onChange={(e) => setTestSentence(e.target.value)}
                 placeholder="Nhập câu tiếng Trung để nghe thử..."
-                className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium"
+                containerClassName="flex-1"
               />
               <Button
                 variant={isPlaying ? 'primary' : 'outline'}
@@ -290,24 +283,24 @@ export const SystemSettingsTab: React.FC<SystemSettingsTabProps> = ({
           {showAzureAdvanced && (
             <div className="space-y-3 pt-2 border-t border-slate-100">
               <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2 space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-600">Azure Subscription Key:</label>
-                  <input
+                <div className="col-span-2">
+                  <Input
+                    size="sm"
+                    label="Azure Subscription Key:"
                     type="password"
                     value={azureKey}
                     onChange={(e) => setAzureKey(e.target.value)}
                     placeholder="Nhập Azure Speech Key (để trống nếu dùng Edge TTS miễn phí)"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-600">Region:</label>
-                  <input
+                <div>
+                  <Input
+                    size="sm"
+                    label="Region:"
                     type="text"
                     value={azureRegion}
                     onChange={(e) => setAzureRegion(e.target.value)}
                     placeholder="eastus, southeastasia..."
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-xs"
                   />
                 </div>
               </div>
@@ -338,15 +331,11 @@ export const SystemSettingsTab: React.FC<SystemSettingsTabProps> = ({
             </div>
           </div>
 
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={settings.ttsAutoplay}
-              onChange={(e) => onUpdateSetting('ttsAutoplay', e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-          </label>
+          <Switch
+            checked={settings.ttsAutoplay}
+            onChange={(checked) => onUpdateSetting('ttsAutoplay', checked)}
+            color="blue"
+          />
         </Card>
 
         {/* Auto start with Windows */}
@@ -361,22 +350,18 @@ export const SystemSettingsTab: React.FC<SystemSettingsTabProps> = ({
             </div>
           </div>
 
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={settings.autoStartWithWindows}
-              onChange={(e) => {
-                onUpdateSetting('autoStartWithWindows', e.target.checked);
-                onShowToast(
-                  e.target.checked
-                    ? '✅ Đã bật tự khởi động cùng Windows'
-                    : 'ℹ️ Đã tắt tự khởi động cùng Windows'
-                );
-              }}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-          </label>
+          <Switch
+            checked={settings.autoStartWithWindows}
+            onChange={(checked) => {
+              onUpdateSetting('autoStartWithWindows', checked);
+              onShowToast(
+                checked
+                  ? '✅ Đã bật tự khởi động cùng Windows'
+                  : 'ℹ️ Đã tắt tự khởi động cùng Windows'
+              );
+            }}
+            color="blue"
+          />
         </Card>
       </div>
     </div>

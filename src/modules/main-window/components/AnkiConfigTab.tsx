@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Button, Badge } from '@/components/ui';
+import { Card, Button, Badge, Select } from '@/components/ui';
 import { AppSettings } from '../types';
 import { CheckCircle2, RefreshCw, Layers, FileText } from 'lucide-react';
 
@@ -86,36 +86,34 @@ export const AnkiConfigTab: React.FC<AnkiConfigTabProps> = ({
 
       {/* Deck & Note Configuration */}
       <div className="space-y-4 text-xs">
-        <div className="space-y-1">
-          <label className="font-bold text-slate-700 flex items-center gap-1.5">
-            <Layers className="w-3.5 h-3.5 text-blue-600" />
-            Bộ Deck Anki mặc định khi lưu thẻ:
-          </label>
-          <select
-            value={settings.ankiDeck}
-            onChange={(e) => onUpdateSetting('ankiDeck', e.target.value)}
-            className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="Tiếng Trung (HSK 1 - 6)">Tiếng Trung (HSK 1 - 6)</option>
-            <option value="Hán Ngữ Giao Tiếp">Hán Ngữ Giao Tiếp</option>
-            <option value="Default">Default</option>
-          </select>
-        </div>
+        <Select
+          label={
+            <span className="flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-blue-600" />
+              Bộ Deck Anki mặc định khi lưu thẻ:
+            </span>
+          }
+          value={settings.ankiDeck}
+          onChange={(e) => onUpdateSetting('ankiDeck', e.target.value)}
+        >
+          <option value="Tiếng Trung (HSK 1 - 6)">Tiếng Trung (HSK 1 - 6)</option>
+          <option value="Hán Ngữ Giao Tiếp">Hán Ngữ Giao Tiếp</option>
+          <option value="Default">Default</option>
+        </Select>
 
-        <div className="space-y-1">
-          <label className="font-bold text-slate-700 flex items-center gap-1.5">
-            <FileText className="w-3.5 h-3.5 text-indigo-600" />
-            Loại thẻ (Model / Note Type):
-          </label>
-          <select
-            value={settings.ankiModel}
-            onChange={(e) => onUpdateSetting('ankiModel', e.target.value)}
-            className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="HyDict-Rich-Card">HyDict-Rich-Card (Hanzi, Pinyin, HanViet, Meaning, Example)</option>
-            <option value="Basic">Basic (and reversed card)</option>
-          </select>
-        </div>
+        <Select
+          label={
+            <span className="flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5 text-indigo-600" />
+              Loại thẻ (Model / Note Type):
+            </span>
+          }
+          value={settings.ankiModel}
+          onChange={(e) => onUpdateSetting('ankiModel', e.target.value)}
+        >
+          <option value="HyDict-Rich-Card">HyDict-Rich-Card (Hanzi, Pinyin, HanViet, Meaning, Example)</option>
+          <option value="Basic">Basic (and reversed card)</option>
+        </Select>
 
         {/* Field Mapping Preview */}
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">

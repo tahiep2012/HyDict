@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hanzii Dict Desktop - Interactive Architecture Mockup</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@500;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .font-hanzi {
+      font-family: 'Noto Serif SC', 'Songti SC', serif;
+    }
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.03);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.25);
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 antialiased p-4 md:p-6 min-h-screen flex flex-col items-center justify-start select-none">
+
+  <!-- Top Controller Bar: View Switcher -->
+  <header class="w-full max-w-5xl mb-6 bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-xl backdrop-blur-md flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-black text-xl text-white shadow-md shadow-blue-500/20">
+        汉
+      </div>
+      <div>
+        <h1 class="font-bold text-base text-white flex items-center gap-2">
+          Hanzii Dict Desktop 
+          <span class="text-[11px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-semibold border border-blue-500/30">Mô hình Lingoes Multi-Window</span>
+        </h1>
+        <p class="text-xs text-slate-400">Kiến trúc 3 thành phần: Cửa sổ chính (Main Window), Cửa sổ nổi (Quick HUD), và Khay hệ thống (Tray)</p>
+      </div>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div class="flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-xl border border-slate-700/60">
+      <button onclick="switchView('main')" id="btn-view-main" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 bg-blue-600 text-white shadow-sm">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+        1. Cửa Sổ Chính (Main Window)
+      </button>
+      <button onclick="switchView('hud')" id="btn-view-hud" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        2. Cửa Sổ Nổi (Quick Lookup HUD)
+      </button>
+      <button onclick="switchView('tray')" id="btn-view-tray" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path></svg>
+        3. Khay Hệ Thống (System Tray)
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- COMPONENT 1: MAIN WINDOW (CỬA SỔ CHÍNH 850x600 chuẩn Windows) -->
+  <!-- ========================================================================= -->
+  <main id="view-main" class="w-full max-w-4xl bg-slate-100 text-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-300 flex flex-col transition-all duration-300 min-h-[620px]">
+    
+    <!-- Standard Windows Titlebar -->
+    <div class="h-10 bg-slate-200/90 border-b border-slate-300 px-3 flex items-center justify-between select-none">
+      <div class="flex items-center gap-2 text-xs font-semibold text-slate-700">
+        <div class="w-5 h-5 rounded-md bg-blue-600 flex items-center justify-center text-white text-[11px] font-bold">汉</div>
+        <span>Hanzii Dict Desktop - Trung tâm Cài đặt & Tra cứu</span>
+        <span class="text-[10px] bg-slate-300/80 text-slate-600 px-1.5 py-0.5 rounded">v1.2.0</span>
+      </div>
+
+      <!-- Window Action Buttons (Minimize, Maximize, Close to Tray) -->
+      <div class="flex items-center h-full -mr-3">
+        <button class="w-11 h-full hover:bg-slate-300 flex items-center justify-center text-slate-600 transition-colors" title="Thu nhỏ">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+        </button>
+        <button class="w-11 h-full hover:bg-slate-300 flex items-center justify-center text-slate-600 transition-colors" title="Phóng to">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke-width="2"></rect></svg>
+        </button>
+        <button onclick="showToastNotification('Đã thu nhỏ xuống khay hệ thống (System Tray). Phím tắt Shift+T vẫn đang hoạt động!')" class="w-11 h-full hover:bg-rose-500 hover:text-white flex items-center justify-center text-slate-600 transition-colors group" title="Đóng (Thu nhỏ xuống Khay hệ thống)">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Window Body with Left Sidebar Tabs and Right Content Panel -->
+    <div class="flex flex-1 overflow-hidden">
+      
+      <!-- Left Navigation Sidebar -->
+      <aside class="w-56 bg-slate-50 border-r border-slate-200 p-3 flex flex-col justify-between select-none">
+        <div class="space-y-1">
+          <div class="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Phân hệ chức năng</div>
+          
+          <button onclick="switchMainTab('dict')" id="tab-btn-dict" class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition-all bg-blue-600 text-white shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            Tra Từ & Lịch Sử
+          </button>
+
+          <button onclick="switchMainTab('hotkey')" id="tab-btn-hotkey" class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition-all text-slate-600 hover:bg-slate-200/70">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            Bắt Từ & Phím Tắt
+          </button>
+
+          <button onclick="switchMainTab('anki')" id="tab-btn-anki" class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition-all text-slate-600 hover:bg-slate-200/70">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            Cấu Hình Anki
+          </button>
+
+          <button onclick="switchMainTab('settings')" id="tab-btn-settings" class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition-all text-slate-600 hover:bg-slate-200/70">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            Giọng Đọc & Hệ Thống
+          </button>
+        </div>
+
+        <!-- Service Status Card -->
+        <div class="bg-white border border-slate-200 rounded-xl p-3 text-xs shadow-xs space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500 font-medium text-[11px]">Trạng thái bắt từ:</span>
+            <span class="flex items-center gap-1.5 text-emerald-600 font-bold text-[11px]">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sẵn sàng
+            </span>
+          </div>
+          <div class="text-[11px] text-slate-500">Phím tắt: <code class="bg-slate-100 px-1 py-0.5 rounded font-mono text-blue-600 font-bold">Shift+T</code></div>
+          <button onclick="switchView('hud')" class="w-full text-center py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-semibold transition-colors">
+            Thử mở Quick HUD ↗
+          </button>
+        </div>
+      </aside>
+
+      <!-- Right Content Panel -->
+      <section class="flex-1 bg-white p-6 overflow-y-auto max-h-[580px]">
+        
+        <!-- ================= TAB 1: TRA TỪ & LỊCH SỬ ================= -->
+        <div id="main-tab-dict" class="space-y-6">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h2 class="text-lg font-bold text-slate-800">Tra Cứu Từ Điển Chuyên Sâu</h2>
+              <p class="text-xs text-slate-500">Tìm kiếm theo Hán tự, Pinyin hoặc nghĩa tiếng Việt trên kho từ SQLite FTS5</p>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 font-semibold border border-blue-100">120,000+ từ vựng</span>
+          </div>
+
+          <!-- Big Search Bar -->
+          <div class="relative">
+            <input 
+              type="text" 
+              value="万里长城" 
+              placeholder="Nhập chữ Hán (万, 学习), Pinyin (wan4), hoặc tiếng Việt..."
+              class="w-full pl-11 pr-24 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            >
+            <svg class="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <button class="absolute right-2 top-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-xs">
+              Tra Cứu
+            </button>
+          </div>
+
+          <!-- Result Detailed Card -->
+          <div class="bg-slate-50/80 border border-slate-200 rounded-2xl p-5 space-y-4">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="flex items-baseline gap-3">
+                  <span class="text-4xl font-black font-hanzi text-slate-900 tracking-wide">万里长城</span>
+                  <span class="text-sm font-semibold text-slate-400">Phồn thể: 萬里長城</span>
+                </div>
+                <div class="flex items-center gap-2 mt-2">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-800 text-xs font-bold">[ wàn lǐ cháng chéng ]</span>
+                  <span class="px-2.5 py-0.5 rounded-lg bg-blue-100 text-blue-800 text-xs font-bold">Hán Việt: VẠN LÝ TRƯỜNG THÀNH</span>
+                  <span class="px-2 py-0.5 rounded-lg bg-purple-100 text-purple-700 text-[11px] font-bold">Danh từ riêng</span>
+                  <button class="p-1 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-white transition-colors" title="Phát âm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                  </button>
+                </div>
+              </div>
+
+              <button onclick="showToastNotification('✅ Đã thêm [万里长城] vào bộ thẻ Anki [Tiếng Trung]!')" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Thêm vào Anki
+              </button>
+            </div>
+
+            <!-- Definition Body -->
+            <div class="space-y-2 text-xs text-slate-700 leading-relaxed border-t border-slate-200/80 pt-3">
+              <p class="font-bold text-slate-900">Giải nghĩa:</p>
+              <ul class="list-disc list-inside space-y-1 pl-1">
+                <li>Vạn Lý Trường Thành (công trình phòng thủ quân sự cổ đại vĩ đại của Trung Quốc).</li>
+                <li>Biểu tượng lịch sử hào hùng, kỳ quan thế giới nổi tiếng.</li>
+              </ul>
+            </div>
+
+            <!-- Examples -->
+            <div class="bg-white border border-slate-200/90 rounded-xl p-3 space-y-2 text-xs">
+              <span class="text-[11px] font-bold text-blue-600 uppercase tracking-wider">Ví dụ ngữ cảnh thực tế:</span>
+              <div class="space-y-1">
+                <div class="font-medium text-slate-900 font-hanzi text-sm">不到长城非好汉。</div>
+                <div class="text-slate-500 italic">Bú dào Chángchéng fēi hǎohàn.</div>
+                <div class="text-slate-700 font-semibold">Chưa đến Vạn Lý Trường Thành thì chưa phải là hảo hán.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- History Quick List -->
+          <div>
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Các từ đã tra gần đây:</h3>
+            <div class="flex flex-wrap gap-2">
+              <span class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium cursor-pointer transition-colors">万 (vạn)</span>
+              <span class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium cursor-pointer transition-colors">学习 (học tập)</span>
+              <span class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium cursor-pointer transition-colors">汉语 (hán ngữ)</span>
+              <span class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium cursor-pointer transition-colors">雄伟 (hùng vĩ)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= TAB 2: BẮT TỪ & PHÍM TẮT ================= -->
+        <div id="main-tab-hotkey" class="hidden space-y-6">
+          <div class="pb-3 border-b border-slate-100">
+            <h2 class="text-lg font-bold text-slate-800">Cấu Hình Bắt Từ & Phím Tắt Toàn Cục</h2>
+            <p class="text-xs text-slate-500">Thiết lập phương thức kích hoạt Popup HUD trên các ứng dụng bên ngoài (Word, Chrome, Anki...)</p>
+          </div>
+
+          <!-- Setting item 1: Global Hotkey -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center justify-between">
+            <div class="space-y-1 max-w-md">
+              <div class="font-bold text-sm text-slate-800">Phím tắt toàn cục tra từ (Global Hotkey)</div>
+              <div class="text-xs text-slate-500">Bôi đen từ ở bất kỳ phần mềm nào và bấm phím tắt này để mở bảng tra cứu tức thì.</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="text" value="Shift + T" class="w-28 px-3 py-2 bg-white border border-slate-300 rounded-xl text-center text-xs font-bold text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+              <button class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-semibold transition-colors">Đổi phím</button>
+            </div>
+          </div>
+
+          <!-- Setting item 2: Mouse Selection Mode -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="space-y-1">
+                <div class="font-bold text-sm text-slate-800">Bắt từ khi bôi đen chuột (Mouse Cursor Capture)</div>
+                <div class="text-xs text-slate-500">Tự động hiện icon hoặc bảng tra ngay khi vừa thả chuột bôi đen chữ Hán.</div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" checked class="sr-only peer">
+                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            <!-- Sub options -->
+            <div class="pl-4 border-l-2 border-blue-200 space-y-2 pt-2 text-xs text-slate-700">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="capture-mode" checked class="text-blue-600 focus:ring-blue-500">
+                <span>Chỉ hiện biểu tượng bong bóng nhỏ (Bấm vào mới bung Popup HUD - Tránh làm vướng)</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="capture-mode" class="text-blue-600 focus:ring-blue-500">
+                <span>Hiện thẳng Popup HUD ngay lập tức khi bôi đen</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="capture-mode" class="text-blue-600 focus:ring-blue-500">
+                <span>Chỉ bắt từ khi vừa bôi đen vừa giữ phím <kbd class="bg-white px-1.5 py-0.5 border rounded font-mono font-bold text-[11px]">Alt</kbd></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Setting item 3: CJK Filter -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center justify-between">
+            <div class="space-y-1 max-w-md">
+              <div class="font-bold text-sm text-slate-800">Lọc ký tự thông minh (Smart CJK Filter)</div>
+              <div class="text-xs text-slate-500">Bỏ qua và không hiện bảng khi người dùng bôi đen văn bản tiếng Anh thuần hoặc số điện thoại.</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" checked class="sr-only peer">
+              <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+        </div>
+
+        <!-- ================= TAB 3: CẤU HÌNH ANKI ================= -->
+        <div id="main-tab-anki" class="hidden space-y-6">
+          <div class="pb-3 border-b border-slate-100">
+            <h2 class="text-lg font-bold text-slate-800">Đồng Bộ Thẻ Với Anki Desktop</h2>
+            <p class="text-xs text-slate-500">Kết nối hai chiều thông qua AnkiConnect API (Port 8765)</p>
+          </div>
+
+          <!-- Anki Connection Status Banner -->
+          <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold">
+                ✓
+              </div>
+              <div>
+                <div class="font-bold text-sm text-emerald-900">AnkiConnect Đã Kết Nối Thành Công</div>
+                <div class="text-xs text-emerald-700">Phiên bản AnkiConnect 6 (http://127.0.0.1:8765)</div>
+              </div>
+            </div>
+            <button onclick="showToastNotification('Đã kiểm tra lại kết nối: Hoàn hảo!')" class="px-3 py-1.5 bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 rounded-xl text-xs font-bold transition-all shadow-xs">
+              Kiểm tra lại
+            </button>
+          </div>
+
+          <!-- Configuration Fields -->
+          <div class="space-y-4 text-xs">
+            <div class="space-y-1">
+              <label class="font-bold text-slate-700">Bộ Deck Anki mặc định khi lưu thẻ:</label>
+              <select class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option selected>Tiếng Trung (HSK 1 - 6)</option>
+                <option>Hán Ngữ Giao Tiếp</option>
+                <option>Default</option>
+              </select>
+            </div>
+
+            <div class="space-y-1">
+              <label class="font-bold text-slate-700">Loại thẻ (Model / Note Type):</label>
+              <select class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option selected>Hanzii-Rich-Card (Hanzi, Pinyin, HanViet, Meaning, Example, Audio)</option>
+                <option>Basic (and reversed card)</option>
+              </select>
+            </div>
+
+            <!-- Field Mapping Preview -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+              <div class="font-bold text-slate-700 text-[11px] uppercase tracking-wider">Cấu trúc các trường thẻ tự động điền:</div>
+              <div class="grid grid-cols-2 gap-2 text-slate-600">
+                <div class="bg-white p-2 rounded-lg border"><strong>{Hanzi}</strong>: Chữ Hán gốc</div>
+                <div class="bg-white p-2 rounded-lg border"><strong>{Pinyin}</strong>: Phiên âm có thanh điệu</div>
+                <div class="bg-white p-2 rounded-lg border"><strong>{HanViet}</strong>: Âm Hán Việt chuẩn</div>
+                <div class="bg-white p-2 rounded-lg border"><strong>{Meaning}</strong>: Toàn bộ nghĩa tiếng Việt</div>
+                <div class="bg-white p-2 rounded-lg border col-span-2"><strong>{Example}</strong>: Câu ví dụ kèm pinyin & dịch nghĩa</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= TAB 4: GIỌNG ĐỌC & HỆ THỐNG ================= -->
+        <div id="main-tab-settings" class="hidden space-y-6">
+          <div class="pb-3 border-b border-slate-100">
+            <h2 class="text-lg font-bold text-slate-800">Cài Đặt Giọng Đọc & Khởi Động</h2>
+            <p class="text-xs text-slate-500">Tùy biến bộ máy phát âm Edge-TTS AI và hành vi khi mở Windows</p>
+          </div>
+
+          <div class="space-y-4 text-xs">
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center justify-between">
+              <div class="space-y-1">
+                <div class="font-bold text-sm text-slate-800">Khởi động cùng Windows (Auto Start)</div>
+                <div class="text-slate-500">Tự động chạy ngầm dưới khay hệ thống khi bạn bật máy tính.</div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" checked class="sr-only peer">
+                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+              <div class="font-bold text-sm text-slate-800">Giọng đọc phát âm AI (Microsoft Edge TTS):</div>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="border-2 border-blue-600 bg-blue-50/50 p-3 rounded-xl flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="voice" checked class="text-blue-600">
+                  <div>
+                    <div class="font-bold text-slate-800">Xiaoxiao (Giọng Nữ)</div>
+                    <div class="text-[11px] text-slate-500">Bản xứ Bắc Kinh - Tự nhiên & Trầm ấm</div>
+                  </div>
+                </label>
+                <label class="border border-slate-200 bg-white p-3 rounded-xl flex items-center gap-2 cursor-pointer hover:border-slate-300">
+                  <input type="radio" name="voice" class="text-blue-600">
+                  <div>
+                    <div class="font-bold text-slate-800">Yunxi (Giọng Nam)</div>
+                    <div class="text-[11px] text-slate-500">Truyền cảm & Chuẩn phát thanh viên</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center justify-between">
+              <div class="space-y-1">
+                <div class="font-bold text-sm text-slate-800">Tự động phát âm khi tra từ</div>
+                <div class="text-slate-500">Mỗi khi bảng tra HUD xuất hiện sẽ tự động phát âm ngay lập tức.</div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" checked class="sr-only peer">
+                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- COMPONENT 2: QUICK LOOKUP HUD (CỬA SỔ NỔI MINI POPUP) -->
+  <!-- ========================================================================= -->
+  <section id="view-hud" class="hidden w-full max-w-md flex flex-col items-center">
+    <div class="mb-3 text-center">
+      <span class="text-xs bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full border border-indigo-500/30 font-semibold">
+        📍 Mô phỏng: Cửa sổ nổi hiện ngay sát con trỏ chuột khi bôi đen chữ Hán
+      </span>
+    </div>
+
+    <!-- The HUD Container (Floating Window Style) -->
+    <div class="w-[440px] bg-white text-slate-900 rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col animate-fadeIn">
+      
+      <!-- HUD Titlebar -->
+      <div class="flex items-center justify-between px-4 py-2.5 bg-slate-50/90 border-b border-slate-100 select-none">
+        <div class="flex items-center gap-2 text-xs font-bold text-blue-600">
+          <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          <span>Hanzii Fast Lookup HUD</span>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <button class="p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-slate-200/60" title="Ghim cửa sổ">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+          </button>
+          <button onclick="switchView('main')" class="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50" title="Đóng (Esc)">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Jieba Segmentation Bar -->
+      <div class="px-4 py-2.5 bg-blue-50/50 border-b border-slate-100 flex items-center justify-between text-xs">
+        <span class="text-[11px] font-bold text-blue-600 flex items-center gap-1">
+          <span>Phân từ câu:</span>
+        </span>
+        <div class="flex gap-1">
+          <span class="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-slate-600 cursor-pointer hover:bg-blue-100">这</span>
+          <span class="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-slate-600 cursor-pointer hover:bg-blue-100">本</span>
+          <span class="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-slate-600 cursor-pointer hover:bg-blue-100">书</span>
+          <span class="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-slate-600 cursor-pointer hover:bg-blue-100">有</span>
+          <span class="px-2 py-0.5 rounded-lg bg-blue-600 text-white font-bold shadow-xs">万</span>
+          <span class="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-slate-600 cursor-pointer hover:bg-blue-100">页</span>
+        </div>
+      </div>
+
+      <!-- Main Word Detail in HUD -->
+      <div class="p-4 space-y-3.5">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="flex items-baseline gap-2">
+              <span class="text-4xl font-black font-hanzi text-slate-900">万</span>
+              <span class="text-xs text-slate-400 font-medium">Phồn thể: 萬</span>
+            </div>
+            <div class="flex items-center gap-1.5 mt-1">
+              <span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[11px] font-bold">[ wàn ]</span>
+              <span class="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[11px] font-bold">Hán Việt: VẠN</span>
+              <span class="px-2 py-0.5 rounded-md bg-purple-100 text-purple-700 text-[10px] font-bold">Số từ (num)</span>
+              <button class="p-1 rounded text-slate-400 hover:text-blue-600" title="Nghe phát âm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Stroke Order Interactive Preview -->
+          <div class="w-20 h-20 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center justify-center relative shadow-inner group">
+            <span class="text-3xl font-black font-hanzi text-blue-600">万</span>
+            <span class="text-[9px] font-bold text-slate-400 mt-0.5">3 nét bút</span>
+            <div class="absolute inset-0 bg-blue-600/10 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+              <span class="text-[10px] bg-blue-600 text-white font-bold px-1 rounded">Vẽ nét ▶</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meaning list -->
+        <div class="text-xs text-slate-700 space-y-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+          <div class="font-bold text-slate-800">1. Mười nghìn (10,000):</div>
+          <div class="text-slate-600 pl-3">Một vạn; con số vạn.</div>
+          <div class="font-bold text-slate-800 pt-1">2. Vô số; hết sức, muôn vàn:</div>
+          <div class="text-slate-600 pl-3">Muôn phần, thiên biến vạn hóa.</div>
+        </div>
+
+        <!-- 1-Click Anki Button in HUD -->
+        <div class="pt-2 flex items-center justify-between border-t border-slate-100">
+          <span class="text-[11px] text-slate-400">Nhấn <kbd class="px-1.5 py-0.5 bg-slate-100 border rounded font-mono text-slate-600 font-bold">Esc</kbd> để đóng</span>
+          <button onclick="showToastNotification('✅ Đã thêm [万] vào Anki thành công!')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Thêm vào Anki (1-Click)
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- COMPONENT 3: SYSTEM TRAY (KHAY HỆ THỐNG GÓC PHẢI MÀN HÌNH) -->
+  <!-- ========================================================================= -->
+  <section id="view-tray" class="hidden w-full max-w-md flex flex-col items-center">
+    <div class="mb-4 text-center">
+      <span class="text-xs bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full border border-amber-500/30 font-semibold">
+        📍 Mô phỏng: Chuột phải vào biểu tượng ứng dụng ở góc phải thanh Taskbar (Windows)
+      </span>
+    </div>
+
+    <!-- Windows Taskbar Simulation -->
+    <div class="w-full bg-slate-800 border border-slate-700 rounded-2xl p-4 space-y-4 shadow-2xl">
+      <div class="text-xs font-bold text-slate-400 flex items-center justify-between">
+        <span>Windows Taskbar Tray (Góc dưới cùng bên phải)</span>
+        <span class="text-slate-500 font-mono">10:24 PM</span>
+      </div>
+
+      <!-- Tray Icons Area -->
+      <div class="flex items-center justify-end gap-3 bg-slate-900/80 p-3 rounded-xl border border-slate-700/60">
+        <span class="text-slate-500 text-xs">🔊 📶 🔋</span>
+        <!-- Hanzii Tray Icon -->
+        <div class="relative group cursor-pointer">
+          <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white text-xs ring-2 ring-blue-400 animate-pulse" title="Hanzii Dict Desktop (Đang chạy nền)">
+            汉
+          </div>
+
+          <!-- Simulated Right-Click Context Menu -->
+          <div class="absolute right-0 bottom-9 w-56 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 py-1.5 text-xs font-medium z-50">
+            <div class="px-3 py-1.5 border-b border-slate-100 flex items-center justify-between">
+              <span class="font-bold text-slate-900">Hanzii Dict v1.2</span>
+              <span class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">Chạy ngầm</span>
+            </div>
+
+            <button onclick="switchView('main'); switchMainTab('dict');" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
+              📖 <span>Mở Cửa Sổ Chính</span>
+            </button>
+            <button onclick="switchView('hud')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
+              ⚡ <span>Bật Cửa Sổ Nổi (Quick HUD)</span>
+            </button>
+            <button onclick="switchView('main'); switchMainTab('hotkey');" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
+              ⚙️ <span>Cài Đặt Tính Năng...</span>
+            </button>
+
+            <div class="border-t border-slate-100 my-1"></div>
+
+            <div class="px-3 py-1 text-[11px] text-slate-400 flex items-center justify-between">
+              <span>Bắt từ khi bôi đen:</span>
+              <span class="text-emerald-600 font-bold">BẬT</span>
+            </div>
+
+            <div class="border-t border-slate-100 my-1"></div>
+
+            <button onclick="showToastNotification('Đã thoát hoàn toàn tiến trình ứng dụng!')" class="w-full text-left px-3 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2">
+              ✕ <span>Thoát Phần Mềm Hoàn Toàn</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Toast Notification Floating Box -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-3 rounded-2xl text-xs font-semibold shadow-2xl border border-slate-700 flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+    <span id="toast-text">Thông báo mẫu</span>
+  </div>
+
+  <script>
+    function switchView(viewName) {
+      document.getElementById('view-main').classList.add('hidden');
+      document.getElementById('view-hud').classList.add('hidden');
+      document.getElementById('view-tray').classList.add('hidden');
+
+      document.getElementById('btn-view-main').className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800";
+      document.getElementById('btn-view-hud').className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800";
+      document.getElementById('btn-view-tray').className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800";
+
+      if (viewName === 'main') {
+        document.getElementById('view-main').classList.remove('hidden');
+        document.getElementById('btn-view-main').className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 bg-blue-600 text-white shadow-sm";
+      } else if (viewName === 'hud') {
+        document.getElementById('view-hud').classList.remove('hidden');
+        document.getElementById('btn-view-hud').className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 bg-blue-600 text-white shadow-sm";
+      } else if (viewName === 'tray') {
+        document.getElementById('view-tray').classList.remove('hidden');
+        document.getElementById('btn-view-tray').className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 bg-blue-600 text-white shadow-sm";
+      }
+    }
+
+    function switchMainTab(tabName) {
+      const tabs = ['dict', 'hotkey', 'anki', 'settings'];
+      tabs.forEach(t => {
+        document.getElementById('main-tab-' + t).classList.add('hidden');
+        const btn = document.getElementById('tab-btn-' + t);
+        btn.className = "w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition-all text-slate-600 hover:bg-slate-200/70";
+      });
+
+      document.getElementById('main-tab-' + tabName).classList.remove('hidden');
+      const activeBtn = document.getElementById('tab-btn-' + tabName);
+      activeBtn.className = "w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition-all bg-blue-600 text-white shadow-sm";
+    }
+
+    function showToastNotification(text) {
+      const toast = document.getElementById('toast');
+      const toastText = document.getElementById('toast-text');
+      toastText.innerText = text;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

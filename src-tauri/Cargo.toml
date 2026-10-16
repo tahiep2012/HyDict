@@ -1,6 +1,6 @@
 [package]
 name = "hydict-desktop"
-version = "2.1.0"
+version = "2.2.0"
 description = "HyDict Desktop - Smart Popup Dictionary for Windows & Anki"
 authors = ["HyDict Team"]
 edition = "2021"

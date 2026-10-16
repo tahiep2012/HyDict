@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Badge, Button } from '@/components/ui';
+import { Card, Badge, Button, Switch, Input } from '@/components/ui';
 import { AppSettings, CaptureMode } from '../types';
 import { Keyboard, MousePointer, Filter, Sparkles } from 'lucide-react';
 
@@ -47,12 +47,12 @@ export const HotkeyCaptureTab: React.FC<HotkeyCaptureTabProps> = ({
         <div className="flex items-center gap-2">
           {isEditingKey ? (
             <>
-              <input
-                type="text"
+              <Input
+                size="sm"
                 value={tempKey}
                 onChange={(e) => setTempKey(e.target.value)}
                 placeholder="Alt+Q"
-                className="w-28 px-3 py-1.5 bg-white border border-blue-500 rounded-xl text-center text-xs font-bold text-blue-600 focus:outline-none"
+                className="w-28 text-center font-bold text-blue-600 focus:outline-none"
               />
               <Button variant="primary" size="sm" onClick={handleSaveKey}>
                 Lưu
@@ -88,15 +88,11 @@ export const HotkeyCaptureTab: React.FC<HotkeyCaptureTabProps> = ({
             </div>
           </div>
 
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={settings.enableCursorCapture}
-              onChange={(e) => onUpdateSetting('enableCursorCapture', e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-          </label>
+          <Switch
+            checked={settings.enableCursorCapture}
+            onChange={(checked) => onUpdateSetting('enableCursorCapture', checked)}
+            color="blue"
+          />
         </div>
 
         {/* Sub-modes */}
@@ -151,15 +147,11 @@ export const HotkeyCaptureTab: React.FC<HotkeyCaptureTabProps> = ({
           </div>
         </div>
 
-        <label className="relative inline-flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            checked={settings.filterCjkOnly}
-            onChange={(e) => onUpdateSetting('filterCjkOnly', e.target.checked)}
-            className="sr-only peer"
-          />
-          <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-        </label>
+        <Switch
+          checked={settings.filterCjkOnly}
+          onChange={(checked) => onUpdateSetting('filterCjkOnly', checked)}
+          color="blue"
+        />
       </Card>
     </div>
   );

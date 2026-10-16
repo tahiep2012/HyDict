@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HyDict Desktop - Master Component Catalog & Living Design System</title>
+  <style>
+    /* CSS Reset & Base Design Tokens */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    :root {
+      --color-primary: #2563eb;
+      --color-primary-hover: #1d4ed8;
+      --color-primary-active: #1e40af;
+      --color-primary-light: #eff6ff;
+      --color-primary-border: #bfdbfe;
+      
+      --color-slate-50: #f8fafc;
+      --color-slate-100: #f1f5f9;
+      --color-slate-200: #e2e8f0;
+      --color-slate-300: #cbd5e1;
+      --color-slate-400: #94a3b8;
+      --color-slate-500: #64748b;
+      --color-slate-600: #475569;
+      --color-slate-700: #334155;
+      --color-slate-800: #1e293b;
+      --color-slate-900: #0f172a;
+
+      --color-emerald-50: #ecfdf5;
+      --color-emerald-100: #d1fae5;
+      --color-emerald-600: #059669;
+      --color-emerald-700: #047857;
+
+      --color-amber-50: #fffbeb;
+      --color-amber-100: #fef3c7;
+      --color-amber-500: #f59e0b;
+      --color-amber-600: #d97706;
+
+      --color-rose-50: #fff1f2;
+      --color-rose-100: #ffe4e6;
+      --color-rose-600: #e11d48;
+      --color-rose-700: #be123c;
+
+      --color-indigo-50: #eef2ff;
+      --color-indigo-600: #4f46e5;
+
+      --color-purple-50: #faf5ff;
+      --color-purple-600: #9333ea;
+
+      --radius-lg: 8px;
+      --radius-xl: 12px;
+      --radius-2xl: 16px;
+      --radius-3xl: 24px;
+      --radius-full: 9999px;
+
+      --shadow-2xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+      --shadow-hud: 0 16px 36px -4px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(0,0,0,0.06);
+
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+      --font-cjk: 'PingFang SC', 'Microsoft YaHei', 'SimHei', 'Noto Sans SC', sans-serif;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: #f8fafc;
+      color: var(--color-slate-800);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Layout Sidebar & Main Content */
+    .sidebar {
+      width: 280px;
+      background: #ffffff;
+      border-right: 1px solid var(--color-slate-200);
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      overflow-y: auto;
+      padding: 24px 16px;
+      z-index: 40;
+    }
+
+    .main-content {
+      margin-left: 280px;
+      flex: 1;
+      padding: 36px 48px 100px;
+      max-width: 1300px;
+    }
+
+    /* Brand Header in Sidebar */
+    .brand-box {
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--color-slate-100);
+      margin-bottom: 20px;
+    }
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--color-slate-900);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 900;
+      font-size: 16px;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+    }
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      background: var(--color-emerald-50);
+      color: var(--color-emerald-700);
+      border: 1px solid var(--color-emerald-100);
+      border-radius: var(--radius-full);
+      font-size: 10.5px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    /* Nav Links */
+    .nav-section-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-slate-400);
+      margin: 16px 8px 8px;
+    }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-radius: var(--radius-xl);
+      color: var(--color-slate-600);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      margin-bottom: 2px;
+    }
+    .nav-link:hover {
+      background: var(--color-slate-100);
+      color: var(--color-slate-900);
+    }
+    .nav-link.active {
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+    }
+    .nav-count {
+      font-size: 11px;
+      padding: 1px 6px;
+      background: var(--color-slate-100);
+      border-radius: var(--radius-full);
+      color: var(--color-slate-500);
+    }
+    .nav-link.active .nav-count {
+      background: #ffffff;
+      color: var(--color-primary);
+    }
+
+    /* Top Page Banner */
+    .page-header {
+      margin-bottom: 40px;
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      padding: 32px;
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--color-slate-200);
+      box-shadow: var(--shadow-xs);
+    }
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--color-slate-900);
+      letter-spacing: -0.02em;
+    }
+    .page-header p {
+      font-size: 14px;
+      color: var(--color-slate-500);
+      margin-top: 8px;
+      max-width: 800px;
+    }
+    .rules-pills {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .rule-pill {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-lg);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .rule-pill.blue {
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      border: 1px solid var(--color-primary-border);
+    }
+    .rule-pill.emerald {
+      background: var(--color-emerald-50);
+      color: var(--color-emerald-700);
+      border: 1px solid var(--color-emerald-100);
+    }
+    .rule-pill.purple {
+      background: var(--color-purple-50);
+      color: var(--color-purple-600);
+      border: 1px solid #e9d5ff;
+    }
+
+    /* Component Sections */
+    .component-card {
+      background: #ffffff;
+      border: 1px solid var(--color-slate-200);
+      border-radius: var(--radius-2xl);
+      padding: 28px;
+      margin-bottom: 36px;
+      box-shadow: var(--shadow-xs);
+      scroll-margin-top: 24px;
+    }
+    .component-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--color-slate-100);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    .component-info h3 {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--color-slate-900);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .component-info p {
+      font-size: 12.5px;
+      color: var(--color-slate-500);
+      margin-top: 4px;
+    }
+    .component-path {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--color-slate-100);
+      color: var(--color-slate-600);
+      padding: 4px 8px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-slate-200);
+    }
+
+    /* Preview Arena */
+    .preview-arena {
+      background: var(--color-slate-50);
+      border: 1px solid var(--color-slate-200);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+    .preview-grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .row-label {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-slate-400);
+      margin-bottom: 8px;
+    }
+
+    /* Code Snippet Box */
+    .code-box {
+      background: var(--color-slate-900);
+      color: #f1f5f9;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 16px;
+      border-radius: var(--radius-xl);
+      overflow-x: auto;
+      position: relative;
+    }
+    .code-box pre {
+      white-space: pre-wrap;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 4px 8px;
+      font-size: 11px;
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* ===================================================
+       ATOMIC COMPONENT STYLES (MATCHING REACT RUNTIME)
+       =================================================== */
+
+    /* 1. BUTTON */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      transition: all 0.15s ease;
+      user-select: none;
+      cursor: pointer;
+      outline: none;
+      border: none;
+    }
+    .btn:active {
+      transform: scale(0.98);
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .btn-sm {
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: var(--radius-xl);
+      gap: 6px;
+    }
+    .btn-md {
+      font-size: 13.5px;
+      padding: 8px 16px;
+      border-radius: var(--radius-xl);
+      gap: 8px;
+    }
+    .btn-lg {
+      font-size: 15px;
+      padding: 10px 20px;
+      border-radius: var(--radius-2xl);
+      gap: 10px;
+    }
+    .btn-icon {
+      padding: 8px;
+      border-radius: var(--radius-xl);
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: #ffffff;
+      box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+    }
+    .btn-primary:hover { background: var(--color-primary-hover); }
+    .btn-secondary {
+      background: var(--color-slate-100);
+      color: var(--color-slate-800);
+    }
+    .btn-secondary:hover { background: var(--color-slate-200); }
+    .btn-success {
+      background: var(--color-emerald-600);
+      color: #ffffff;
+      box-shadow: 0 1px 2px rgba(5, 150, 105, 0.2);
+    }
+    .btn-success:hover { background: var(--color-emerald-700); }
+    .btn-danger {
+      background: var(--color-rose-600);
+      color: #ffffff;
+      box-shadow: 0 1px 2px rgba(225, 29, 72, 0.2);
+    }
+    .btn-danger:hover { background: var(--color-rose-700); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--color-slate-600);
+    }
+    .btn-ghost:hover {
+      background: var(--color-slate-100);
+      color: var(--color-slate-900);
+    }
+    .btn-outline {
+      background: #ffffff;
+      color: var(--color-slate-700);
+      border: 1px solid var(--color-slate-300);
+    }
+    .btn-outline:hover {
+      background: var(--color-slate-50);
+    }
+
+    /* 2. ICON BUTTON */
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-xl);
+      transition: all 0.15s ease;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      background: transparent;
+    }
+    .icon-btn:active { transform: scale(0.95); }
+    .icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .icon-btn-sm { width: 28px; height: 28px; padding: 4px; }
+    .icon-btn-md { width: 32px; height: 32px; padding: 6px; }
+    .icon-btn-lg { width: 38px; height: 38px; padding: 8px; }
+
+    .icon-btn-ghost {
+      color: var(--color-slate-400);
+    }
+    .icon-btn-ghost:hover {
+      color: var(--color-primary);
+      background: var(--color-primary-light);
+    }
+    .icon-btn-danger {
+      color: var(--color-slate-400);
+    }
+    .icon-btn-danger:hover {
+      color: var(--color-rose-600);
+      background: var(--color-rose-50);
+    }
+    .icon-btn-bordered {
+      color: var(--color-slate-600);
+      background: #ffffff;
+      border: 1px solid var(--color-slate-200);
+      box-shadow: var(--shadow-2xs);
+    }
+    .icon-btn-bordered:hover {
+      background: var(--color-slate-50);
+      color: var(--color-slate-900);
+    }
+    .icon-btn-primary {
+      color: #ffffff;
+      background: var(--color-primary);
+      box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+    }
+    .icon-btn-primary:hover { background: var(--color-primary-hover); }
+    .icon-btn-light {
+      color: var(--color-slate-600);
+      background: var(--color-slate-100);
+    }
+    .icon-btn-light:hover { background: var(--color-slate-200); }
+
+    /* 3. SEARCH INPUT (48px) */
+    .search-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .search-input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--color-slate-400);
+      display: flex;
+    }
+    .search-input-field {
+      width: 100%;
+      height: 48px;
+      padding-left: 44px;
+      padding-right: 120px;
+      background: var(--color-slate-50);
+      border: 1px solid var(--color-slate-200);
+      border-radius: var(--radius-2xl);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-slate-800);
+      outline: none;
+      transition: all 0.15s ease;
+      box-shadow: var(--shadow-xs);
+    }
+    .search-input-field:focus {
+      background: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 0 0 2px var(--color-primary);
+    }
+    .search-input-clear {
+      position: absolute;
+      right: 110px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--color-slate-400);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: var(--radius-full);
+      display: flex;
+      transition: all 0.15s;
+    }
+    .search-input-clear:hover {
+      background: var(--color-slate-200);
+      color: var(--color-slate-700);
+    }
+    .search-input-action {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    /* 4. SWITCH (Animated Toggle) */
+    .switch-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .switch-label-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--color-slate-800);
+    }
+    .switch-label-desc {
+      font-size: 12px;
+      color: var(--color-slate-500);
+      margin-top: 2px;
+    }
+    .switch-toggle {
+      position: relative;
+      display: inline-flex;
+      width: 44px;
+      height: 24px;
+      border-radius: var(--radius-full);
+      background: var(--color-slate-300);
+      transition: background 0.2s ease;
+      flex-shrink: 0;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+    .switch-toggle.active {
+      background: var(--color-primary);
+    }
+    .switch-toggle.active.indigo { background: var(--color-indigo-600); }
+    .switch-toggle.active.emerald { background: var(--color-emerald-600); }
+    .switch-thumb {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border-radius: var(--radius-full);
+      background: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      transform: translateX(0);
+      transition: transform 0.2s ease;
+    }
+    .switch-toggle.active .switch-thumb {
+      transform: translateX(20px);
+    }
+
+    /* 5. SELECT */
+    .select-wrap {
+      width: 100%;
+    }
+    .select-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-slate-700);
+      margin-bottom: 6px;
+    }
+    .select-box-relative {
+      position: relative;
+    }
+    .select-field {
+      width: 100%;
+      height: 44px;
+      padding: 0 36px 0 14px;
+      background: var(--color-slate-50);
+      border: 1px solid var(--color-slate-200);
+      border-radius: var(--radius-xl);
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--color-slate-800);
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      transition: all 0.15s ease;
+    }
+    .select-field:hover {
+      background: var(--color-slate-100);
+    }
+    .select-field:focus {
+      background: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 0 0 2px var(--color-primary);
+    }
+    .select-chevron {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--color-slate-400);
+      display: flex;
+    }
+
+    /* 6. INPUT */
+    .input-wrap {
+      width: 100%;
+    }
+    .input-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-slate-700);
+      margin-bottom: 6px;
+    }
+    .input-box-relative {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-icon-left {
+      position: absolute;
+      left: 12px;
+      color: var(--color-slate-400);
+      pointer-events: none;
+      display: flex;
+    }
+    .input-field {
+      width: 100%;
+      background: var(--color-slate-50);
+      border: 1px solid var(--color-slate-200);
+      border-radius: var(--radius-xl);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-slate-800);
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    .input-field-sm { height: 36px; padding: 0 12px; font-size: 12px; }
+    .input-field-md { height: 44px; padding: 0 14px; font-size: 13px; }
+    .input-field-lg { height: 48px; padding: 0 16px; font-size: 14px; }
+    .input-field.with-icon { padding-left: 38px; }
+    .input-field:focus {
+      background: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 0 0 2px var(--color-primary);
+    }
+    .input-field.error {
+      border-color: var(--color-rose-600);
+    }
+    .input-field.error:focus {
+      box-shadow: 0 0 0 2px var(--color-rose-600);
+    }
+    .input-helper {
+      font-size: 11px;
+      color: var(--color-slate-500);
+      margin-top: 4px;
+    }
+    .input-helper.error {
+      color: var(--color-rose-600);
+      font-weight: 600;
+    }
+
+    /* 7. PILL TABS */
+    .pill-tabs {
+      display: inline-flex;
+      align-items: center;
+      background: var(--color-slate-100);
+      padding: 4px;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--color-slate-200);
+    }
+    .pill-tab-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: var(--radius-lg);
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--color-slate-600);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .pill-tab-item:hover {
+      color: var(--color-slate-900);
+    }
+    .pill-tab-item.active {
+      background: #ffffff;
+      color: var(--color-primary);
+      box-shadow: var(--shadow-2xs);
+    }
+    .pill-tab-badge {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: var(--radius-full);
+      background: var(--color-slate-200);
+      color: var(--color-slate-700);
+    }
+    .pill-tab-item.active .pill-tab-badge {
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+    }
+
+    /* 8. BADGE */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+      user-select: none;
+    }
+    .badge-sm {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: var(--radius-lg);
+    }
+    .badge-md {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: var(--radius-xl);
+      font-weight: 700;
+    }
+    .badge-primary {
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      border: 1px solid var(--color-primary-border);
+    }
+    .badge-success {
+      background: var(--color-emerald-50);
+      color: var(--color-emerald-700);
+      border: 1px solid var(--color-emerald-100);
+    }
+    .badge-warning {
+      background: var(--color-amber-50);
+      color: var(--color-amber-600);
+      border: 1px solid var(--color-amber-100);
+    }
+    .badge-purple {
+      background: var(--color-purple-50);
+      color: var(--color-purple-600);
+      border: 1px solid #e9d5ff;
+    }
+    .badge-neutral {
+      background: var(--color-slate-100);
+      color: var(--color-slate-700);
+      border: 1px solid var(--color-slate-200);
+    }
+
+    /* 9. CARD */
+    .card {
+      padding: 20px;
+      transition: all 0.15s ease;
+    }
+    .card-xl { border-radius: var(--radius-xl); }
+    .card-2xl { border-radius: var(--radius-2xl); }
+    .card-3xl { border-radius: var(--radius-3xl); }
+    .card-default {
+      background: #ffffff;
+      border: 1px solid var(--color-slate-200);
+      box-shadow: var(--shadow-xs);
+    }
+    .card-flat {
+      background: var(--color-slate-50);
+      border: 1px solid var(--color-slate-200);
+    }
+    .card-bordered {
+      background: #ffffff;
+      border: 2px solid var(--color-slate-200);
+    }
+    .card-dashed {
+      background: rgba(255, 255, 255, 0.4);
+      border: 2px dashed var(--color-slate-200);
+    }
+    .card-hud {
+      background: #ffffff;
+      border: 1px solid var(--color-slate-200);
+      box-shadow: var(--shadow-hud);
+    }
+
+    /* 10. EMPTY STATE */
+    .empty-state {
+      padding: 48px 24px;
+      text-align: center;
+      border: 2px dashed var(--color-slate-200);
+      border-radius: var(--radius-2xl);
+      background: rgba(255, 255, 255, 0.6);
+    }
+    .empty-state-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      box-shadow: var(--shadow-2xs);
+    }
+    .empty-state-icon.slate { background: var(--color-slate-100); color: var(--color-slate-400); }
+    .empty-state-icon.amber { background: var(--color-amber-50); color: var(--color-amber-500); }
+    .empty-state-icon.blue { background: var(--color-primary-light); color: var(--color-primary); }
+    .empty-state-icon.emerald { background: var(--color-emerald-50); color: var(--color-emerald-600); }
+    .empty-state-icon.rose { background: var(--color-rose-50); color: var(--color-rose-600); }
+
+    .empty-state-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--color-slate-800);
+    }
+    .empty-state-desc {
+      font-size: 12.5px;
+      color: var(--color-slate-400);
+      max-width: 380px;
+      margin: 6px auto 0;
+      line-height: 1.5;
+    }
+    .empty-state-action {
+      margin-top: 16px;
+    }
+
+    /* DOMAIN COMPONENTS (Tone Pinyin & HSK) */
+    .tone-pinyin {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--color-amber-50);
+      border: 1px solid var(--color-amber-100);
+      display: inline-block;
+    }
+    .hsk-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: var(--radius-lg);
+      letter-spacing: 0.02em;
+    }
+    .hsk-1 { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .hsk-2 { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .hsk-3 { background: #fefce8; color: #a16207; border: 1px solid #fef08a; }
+    .hsk-4 { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+    .hsk-5 { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+    .hsk-6 { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
+
+    /* SVG icon utility sizing */
+    svg.icon {
+      width: 16px;
+      height: 16px;
+      stroke-width: 2;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vertical-align: middle;
+    }
+    svg.icon-sm { width: 14px; height: 14px; }
+    svg.icon-lg { width: 20px; height: 20px; }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================
+       SIDEBAR NAVIGATION
+       ========================================== -->
+  <aside class="sidebar">
+    <div class="brand-box">
+      <div class="brand-title">
+        <div class="brand-logo">漢</div>
+        <div>
+          <div>HyDict Design</div>
+          <div style="font-size: 11px; font-weight: 500; color: var(--color-slate-400);">Living Component System</div>
+        </div>
+      </div>
+      <div class="brand-badge">
+        <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <span>Project Standard v2.1.0</span>
+      </div>
+    </div>
+
+    <div class="nav-section-title">Design Foundations</div>
+    <a href="#tokens" class="nav-link">
+      <span>🎨 Design Tokens</span>
+      <span class="nav-count">4</span>
+    </a>
+
+    <div class="nav-section-title">Atomic Components (10)</div>
+    <a href="#search-input" class="nav-link">
+      <span>🔍 SearchInput</span>
+      <span class="nav-count">48px</span>
+    </a>
+    <a href="#empty-state" class="nav-link">
+      <span>📦 EmptyState</span>
+      <span class="nav-count">Dashed</span>
+    </a>
+    <a href="#icon-button" class="nav-link">
+      <span>🔘 IconButton</span>
+      <span class="nav-count">32px</span>
+    </a>
+    <a href="#button" class="nav-link">
+      <span>🟦 Button</span>
+      <span class="nav-count">6 Var</span>
+    </a>
+    <a href="#switch" class="nav-link">
+      <span>🎚️ Switch</span>
+      <span class="nav-count">Toggle</span>
+    </a>
+    <a href="#select" class="nav-link">
+      <span>📑 Select</span>
+      <span class="nav-count">44px</span>
+    </a>
+    <a href="#pill-tabs" class="nav-link">
+      <span>💊 PillTabs</span>
+      <span class="nav-count">Pills</span>
+    </a>
+    <a href="#input" class="nav-link">
+      <span>✏️ Input</span>
+      <span class="nav-count">Forms</span>
+    </a>
+    <a href="#card" class="nav-link">
+      <span>🗂️ Card</span>
+      <span class="nav-count">5 Var</span>
+    </a>
+    <a href="#badge" class="nav-link">
+      <span>🏷️ Badge</span>
+      <span class="nav-count">Pill</span>
+    </a>
+
+    <div class="nav-section-title">Domain Linguistics</div>
+    <a href="#domain-hanzi" class="nav-link">
+      <span>🏮 Hanzi & Pinyin UI</span>
+      <span class="nav-count">3</span>
+    </a>
+    <a href="#live-playground" class="nav-link">
+      <span>🚀 Full Screen Demo</span>
+      <span class="nav-count">Live</span>
+    </a>
+  </aside>
+
+  <!-- ==========================================
+       MAIN CONTENT SHOWCASE
+       ========================================== -->
+  <main class="main-content">
+
+    <!-- Top Banner -->
+    <header class="page-header">
+      <h1>HyDict Desktop - Master Component Catalog</h1>
+      <p>
+        Bản catalog và mockup chuẩn hóa toàn bộ các khối nguyên tử (Atomic Components) cho dự án HyDict Desktop. 
+        Đóng gói hoàn chỉnh tại <code>@/components/ui</code>, bảo đảm 100% tuân thủ bất biến <strong>Zero-Raw-HTML Invariance</strong> và thiết lập chuẩn duy nhất cho dự án.
+      </p>
+      <div class="rules-pills">
+        <div class="rule-pill blue">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          <span>100% Atomic UI Reusability</span>
+        </div>
+        <div class="rule-pill emerald">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          <span>Zero Raw HTML Invariance</span>
+        </div>
+        <div class="rule-pill purple">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+          <span>Dual-Tier Project-Level Isolation</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- SECTION 0: TOKENS -->
+    <section id="tokens" class="component-card">
+      <div class="component-header">
+        <div class="component-info">
+          <h3>🎨 Design Tokens & Hierarchy</h3>
+          <p>Hệ thống quy chuẩn về Màu sắc, Góc bo (Radius) và Đổ bóng (Shadows) của HyDict Desktop.</p>
+        </div>
+      </div>
+
+      <div class="preview-arena">
+        <div class="row-label">Primary & Semantic Palette</div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;">
+          <div style="background: #2563eb; color: #fff; padding: 12px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; min-width: 130px;">
+            Primary Blue<br><span style="font-size: 10px; opacity: 0.8; font-family: monospace;">#2563eb</span>
+          </div>
+          <div style="background: #0f172a; color: #fff; padding: 12px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; min-width: 130px;">
+            Slate 900 (Text)<br><span style="font-size: 10px; opacity: 0.8; font-family: monospace;">#0f172a</span>
+          </div>
+          <div style="background: #059669; color: #fff; padding: 12px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; min-width: 130px;">
+            Emerald 600<br><span style="font-size: 10px; opacity: 0.8; font-family: monospace;">#059669</span>
+          </div>
+          <div style="background: #f59e0b; color: #fff; padding: 12px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; min-width: 130px;">
+            Amber 500<br><span style="font-size: 10px; opacity: 0.8; font-family: monospace;">#f59e0b</span>
+          </div>
+          <div style="background: #e11d48; color: #fff; padding: 12px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; min-width: 130px;">
+            Rose 600<br><span style="font-size: 10px; opacity: 0.8; font-family: monospace;">#e11d48</span>
+          </div>
+          <div style="background: #4f46e5; color: #fff; padding: 12px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; min-width: 130px;">
+            Indigo 600<br><span style="font-size: 10px; opacity: 0.8; font-family: monospace;">#4f46e5</span>
+          </div>
+        </div>
+
+        <div class="row-label">Corner Radius Tokens</div>
+        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+          <div style="padding: 12px 20px; background: #fff; border: 1px solid var(--color-slate-200); border-radius: 8px; font-size: 12px; font-weight: 600;">
+            rounded-lg (8px)
+          </div>
+          <div style="padding: 12px 20px; background: #fff; border: 1px solid var(--color-slate-200); border-radius: 12px; font-size: 12px; font-weight: 600;">
+            rounded-xl (12px - Inputs & Buttons)
+          </div>
+          <div style="padding: 12px 20px; background: #fff; border: 1px solid var(--color-slate-200); border-radius: 16px; font-size: 12px; font-weight: 600;">
+            rounded-2xl (16px - Search & Cards)
+          </div>
+          <div style="padding: 12px 20px; background: #fff; border: 1px solid var(--color-slate-200); border-radius: 24px; font-size: 12px; font-weight: 600;">
+            rounded-3xl (24px - Modals)
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. SEARCH INPUT -->
+    <section id="search-input" class="component-card">
+      <div class="component-header">
+        <div class="component-info">
+          <h3>🔍 SearchInput</h3>
+          <p>Thanh tìm kiếm tiêu chuẩn cao <strong>48px</strong>, bo góc <code>rounded-2xl</code>, icon kính lúp 20px, nút xóa nhanh <code>X</code> và slot nút hành động bên phải.</p>
+        </div>
+        <span class="component-path">@/components/ui/SearchInput.tsx</span>
+      </div>
+
+      <div class="preview-arena">
+        <div class="row-label">Trực quan tương tác trực tiếp (Hãy gõ thử phím):</div>
+        <div class="search-input-wrap" style="max-width: 800px; margin-bottom: 16px;">
+          <div class="search-input-icon">
+            <svg class="icon icon-lg" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <input 
+            type="text" 
+            id="demoSearchField" 
+            class="search-input-field" 
+            value="万里长城" 
+            placeholder="Nhập chữ Hán, Pinyin không dấu, hoặc tiếng Việt..."
+            oninput="toggleSearchClear(this)"
+          >
+          <button type="button" id="demoSearchClearBtn" class="search-input-clear" onclick="clearSearchField()" title="Xóa nội dung">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+          <div class="search-input-action">
+            <button class="btn btn-primary btn-sm">
+              <span>Tra Cứu</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="row-label">Biến thể có nút hành động phụ (Xuất sang CSV / Anki):</div>
+        <div class="search-input-wrap" style="max-width: 800px;">
+          <div class="search-input-icon">
+            <svg class="icon icon-lg" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <input 
+            type="text" 
+            class="search-input-field" 
+            placeholder="Lọc từ vựng trong sổ tay..."
+          >
+          <div class="search-input-action">
+            <button class="btn btn-outline btn-sm">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" style="color: var(--color-primary);"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Xuất CSV / Anki</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-box">
+        <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        <pre>&lt;SearchInput
+  value={query}
+  onChange={(e) =&gt; setQuery(e.target.value)}
+  onClear={() =&gt; setQuery('')}
+  placeholder="Nhập chữ Hán (学习), Pinyin (gongzuo), tiếng Việt..."
+  actionButton={
+    &lt;Button type="submit" variant="primary" size="sm"&gt;Tra Cứu&lt;/Button&gt;
+  }
+/&gt;</pre>
+      </div>
+    </section>
+
+    <!-- 2. EMPTY STATE -->
+    <section id="empty-state" class="component-card">
+      <div class="component-header">
+        <div class="component-info">
+          <h3>📦 EmptyState</h3>
+          <p>Khung báo trạng thái dữ liệu rỗng chuẩn hóa: Viền nét đứt <code>border-2 border-dashed</code>, icon badge tròn 48px, tiêu đề, mô tả và nút CTA tùy chọn.</p>
+        </div>
+        <span class="component-path">@/components/ui/EmptyState.tsx</span>
+      </div>
+
+      <div class="preview-arena">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+          <!-- Amber / Favorites -->
+          <div class="empty-state">
+            <div class="empty-state-icon amber">
+              <svg class="icon icon-lg" viewBox="0 0 24 24" style="fill: #f59e0b; stroke: #f59e0b;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </div>
+            <div class="empty-state-title">Chưa có từ vựng yêu thích nào</div>
+            <p class="empty-state-desc">Khi tra từ trên cửa sổ HUD hoặc tra chuyên sâu, bấm icon ngôi sao ⭐ để lưu lại các từ bạn muốn ghi nhớ.</p>
+            <div class="empty-state-action">
+              <button class="btn btn-outline btn-sm">Xem gợi ý từ HSK 1</button>
+            </div>
+          </div>
+
+          <!-- Slate / History -->
+          <div class="empty-state">
+            <div class="empty-state-icon slate">
+              <svg class="icon icon-lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <div class="empty-state-title">Chưa có lịch sử tra cứu nào</div>
+            <p class="empty-state-desc">Mỗi khi bạn tra từ trên cửa sổ Quick HUD hoặc cửa sổ chính, từ vựng sẽ tự động được ghi nhận tại đây (tối đa 100 từ).</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-box">
+        <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        <pre>&lt;EmptyState
+  icon={&lt;Star className="w-6 h-6 fill-amber-400 text-amber-500" /&gt;}
+  iconBg="amber"
+  title="Chưa có từ vựng yêu thích nào"
+  description="Bấm icon ngôi sao ⭐ để lưu lại các từ cần ghi nhớ."
+  action={&lt;Button variant="outline" size="sm"&gt;Khám phá HSK 1&lt;/Button&gt;}
+/&gt;</pre>
+      </div>
+    </section>
+
+    <!-- 3. ICON BUTTON -->
+    <section id="icon-button" class="component-card">
+      <div class="component-header">
+        <div class="component-info">
+          <h3>🔘 IconButton</h3>
+          <p>Nút bấm vuông vức chuẩn <strong>32x32px</strong> (bo góc <code>rounded-xl</code>), thay thế hoàn toàn các thẻ raw <code>&lt;button&gt;</code> tự chế padding.</p>
+        </div>
+        <span class="component-path">@/components/ui/IconButton.tsx</span>
+      </div>
+
+      <div class="preview-arena">
+        <div class="row-label">Biến thể màu sắc (Variants):</div>
+        <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 24px;">
+          <div>
+            <button class="icon-btn icon-btn-md icon-btn-ghost" title="Ghost (Loa phát âm)">
+              <svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+            </button>
+            <div style="font-size: 11px; text-align: center; color: var(--color-slate-400); margin-top: 4px;">ghost</div>
+          </div>
+
+          <div>
+            <button class="icon-btn icon-btn-md icon-btn-danger" title="Danger (Xóa mục)">
+              <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+            <div style="font-size: 11px; text-align: center; color: var(--color-slate-400); margin-top: 4px;">danger</div>
+          </div>
+
+          <div>
+            <button class="icon-btn icon-btn-md icon-btn-bordered" title="Bordered (Tùy chọn)">
+              <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
+            <div style="font-size: 11px; text-align: center; color: var(--color-slate-400); margin-top: 4px;">bordered</div>
+          </div>
+
+          <div>
+            <button class="icon-btn icon-btn-md icon-btn-primary" title="Primary (Thêm nhanh)">
+              <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+            <div style="font-size: 11px; text-align: center; color: var(--color-slate-400); margin-top: 4px;">primary</div>
+          </div>
+
+          <div>
+            <button class="icon-btn icon-btn-md icon-btn-light" title="Light (Sao chép)">
+              <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </button>
+            <div style="font-size: 11px; text-align: center; color: var(--color-slate-400); margin-top: 4px;">light</div>
+          </div>
+        </div>
+
+        <div class="row-label">Kích thước (Sizes):</div>
+        <div style="display: flex; gap: 16px; align-items: center;">
+          <button class="icon-btn icon-btn-sm icon-btn-bordered" title="Small 28px">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon></svg>
+          </button>
+          <button class="icon-btn icon-btn-md icon-btn-bordered" title="Medium 32px (Chuẩn)">
+            <svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon></svg>
+          </button>
+          <button class="icon-btn icon-btn-lg icon-btn-bordered" title="Large 38px">
+            <svg class="icon icon-lg" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="code-box">
+        <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        <pre>&lt;IconButton
+  icon={&lt;Volume2 className="w-3.5 h-3.5" /&gt;}
+  variant="ghost"
+  size="md"
+  onClick={() =&gt; playAudio('学习')}
+  title="Phát âm"
+/&gt;
+
+&lt;IconButton
+  icon={&lt;Trash2 className="w-3.5 h-3.5" /&gt;}
+  variant="danger"
+  size="md"
+  onClick={() =&gt; removeHistory(id)}
+  title="Xóa khỏi lịch sử"
+/&gt;</pre>
+      </div>
+    </section>
+
+    <!-- 4. BUTTON -->
+    <section id="button" class="component-card">
+      <div class="component-header">
+        <div class="component-info">
+          <h3>🟦 Button</h3>
+          <p>Nút bấm đa dụng hỗ trợ 6 biến thể, 3 kích cỡ, trạng thái loading và icon hai bên.</p>
+        </div>
+        <span class="component-path">@/components/ui/Button.tsx</span>
+      </div>
+
+      <div class="preview-arena">
+        <div class="row-label">Biến thể màu sắc:</div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;">
+          <button class="btn btn-primary btn-md">Primary Button</button>
+          <button class="btn btn-secondary btn-md">Secondary Button</button>
+          <button class="btn btn-outline btn-md">Outline Button</button>
+          <button class="btn btn-success btn-md">Success Button</button>
+          <button class="btn btn-danger btn-md">Danger Button</button>
+          <button class="btn btn-ghost btn-md">Ghost Button</button>
+        </div>
+
+        <div class="row-label">Kích cỡ & Trạng thái:</div>
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+          <button class="btn btn-primary btn-sm">Small (sm)</button>
+          <button class="btn btn-primary btn-md">Medium (md)</button>
+          <button class="btn btn-primary btn-lg">Large (lg)</button>
+          <button class="btn btn-primary btn-md" disabled>Disabled State</button>
+          <button class="btn btn-primary btn-md">
+            <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+            <span>Đang lưu...</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="code-box">
+        <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        <pre>&lt;Button variant="primary" size="md" leftIcon={&lt;Sparkles className="w-4 h-4" /&gt;}&gt;
+  Tra Cứu Nhanh
+&lt;/Button&gt;</pre>
+      </div>
+    </section>
+
+    <!-- 5. SWITCH -->
+    <section id="switch" class="component-card">
+      <div class="component-header">
+        <div class="component-info">
+          <h3>🎚️ Switch</h3>
+          <p>Công tắc gạt hiện đại có animation mượt mà, hỗ trợ nhãn tiêu đề, mô tả giải thích và thay đổi màu chủ đề.</p>
+        </div>
+        <span class="component-path">@/components/ui/Switch.tsx</span>
+      </div>
+
+      <div class="preview-arena">
+        <div style="display: flex; flex-direction: column; gap: 18px; max-width: 600px;">
+          <!-- Switch 1 -->
+          <div class="switch-container" onclick="toggleSwitch(this)">
+            <div>
+              <div class="switch-label-title">Bắt từ khi bôi đen chuột (Mouse Cursor Capture)</div>
+              <div class="switch-label-desc">Tự động phát hiện khi bạn vừa thả chuột bôi đen chữ Hán trên màn hình.</div>
+            </div>
+            <div class="switch-toggle active">
+              <span class="switch-thumb"></span>
+            </div>
+          </div>
+
+          <!-- Switch 2 -->
+          <div class="switch-container" onclick="toggleSwitch(this)">
+            <div>
+              <div class="switch-label-title">Tự động phát âm khi tra từ (TTS Autoplay)</div>
+              <div class="switch-label-desc">Mỗi khi bảng tra HUD xuất hiện sẽ tự động phát âm ngay lập tức.</div>
+            </div>
+            <div class="switch-toggle active">
+              <span class="switch-thumb"></span>
+            </div>
+          </div>
+
+          <!-- Switch 3 -->
+          <div class="switch-container" onclick="toggleSwitch(this)">
+            <div>
+              <div class="switch-label-title">Khởi động cùng Windows (Auto Start)</div>
+              <div class="switch-label-desc">Tự động chạy ngầm dưới khay hệ thống (System Tray) khi bạn bật máy.</div>
+            </div>
+            <div class="switch-toggle">
+              <span class="switch-thumb"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-box">
+        <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        <pre>&lt;Switch
+  label="Tự động phát âm khi tra từ"
+  description="Mỗi khi bảng tra HUD xuất hiện sẽ phát âm ngay lập tức."
+  checked={settings.ttsAutoplay}
+  onChange={(val) =&gt; onUpdateSetting('ttsAutoplay', val)}
+  color="blue"
+/&gt;</pre>
+      </div>
+    </section>
+
+    <!-- 6. SELECT -->
+    <section id="select" class="component-card">
+      <div class="component-header">
+        <div class="component-info">
+          <h3>📑 Select</h3>
+          <p>Dropdown chọn lựa chuẩn hóa: Chiều cao <strong>44px</strong>, bo góc <code>rounded-xl</code>, viền <code>border-slate-200</code> và icon chevron đồng bộ.</p>
+        </div>
+        <span class="component-path">@/components/ui/Select.tsx</span>
+      </div>
+
+      <div class="preview-arena">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 800px;">
+          <div class="select-wrap">
+            <label class="select-label">Chọn giọng đọc Neural AI (Microsoft Edge):</label>
+            <div class="select-box-relative">
+              <select class="select-field">
+                <optgroup label="👨 Giọng Nam Neural AI">
+                  <option selected>Yunxi (zh-CN-YunxiNeural) - Tự nhiên, sinh động</option>
+                  <option>Yunjian (zh-CN-YunjianNeural) - Trầm ấm, truyền cảm</option>
+                </optgroup>
+                <optgroup label="👩 Giọng Nữ Neural AI">
+                  <option>Xiaoxiao (zh-CN-XiaoxiaoNeural) - Trong trẻo, chuẩn Bắc Kinh</option>
+                  <option>Xiaoyi (zh-CN-XiaoyiNeural) - Nhẹ nhàng, tự nhiên</option>
+                </optgroup>
+              </select>
+              <div class="select-chevron">
+                <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="select-wrap">
+            <label class="select-label">Bộ Deck Anki mặc định:</label>
+            <div class="select-box-relative">
+              <select class="select-field">
+                <option selected>Tiếng Trung (HSK 1 - 6)</option>
+                <option>Hán Ngữ Giao Tiếp Hằng Ngày</option>
+                <option>Thương Mại & Đàm Phán</option>
+              </select>
+              <div class="select-chevron">
+                <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-box">
+        <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        <pre>&lt;Select
+  label="Danh sách giọng đọc hỗ trợ:"
+  value={settings.ttsVoice}
+  onChange={(e) =&gt; onUpdateSetting('ttsVoice', e.target.value)}
+&gt;
+  &lt;option value="zh-CN-YunxiNeural"&gt;Yunxi Neural (Mặc định)&lt;/option&gt;
+  &lt;option value="zh-CN-XiaoxiaoNeural"&gt;Xiaoxiao Neural&lt;/option&gt;
+&lt;/Select&gt;</pre>
+      </div>
+    </section>
+
+    <!-- 7. PILL TABS -->
+    <section id="pill-tabs" class="component-card">
+      <div class="component-header">
+        <div class="component-info">
+          <h3>💊 PillTabs</h3>
+          <p>Segmented Control dạng viên thuốc nổi khối hỗ trợ icon, badge số lượng và animation chuyển tab.</p>
+        </div>
+        <span class="component-path">@/components/ui/PillTabs.tsx</span>
+      </div>
+
+      <div class="preview-arena">
+        <div class="row-label">Tương tác trực tiếp chuyển Tab:</div>
+        <div class="pill-tabs" id="demoPillTabs" style="margin-bottom: 16px;">
+          <button class="pill-tab-item active" onclick="switchDemoTab(this, 'favTabContent')">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" style="fill: #f59e0b; stroke: #f59e0b;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <span>Từ Yêu Thích</span>
+            <span class="pill-tab-badge">12</span>
+          </button>
+          <button class="pill-tab-item" onclick="switchDemoTab(this, 'histTabContent')">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Lịch Sử</span>
+            <span class="pill-tab-badge">48</span>
+          </button>
+        </div>
+
+        <div id="favTabContent" style="padding: 16px; background: #fff; border-radius: 12px; border: 1px solid var(--color-slate-200); font-size: 13px;">
+          ⭐️ Nội dung hiển thị Tab: <strong>Từ Yêu Thích (12 từ đã lưu)</strong>
+        </div>
+        <div id="histTabContent" style="display: none; padding: 16px; background: #fff; border-radius: 12px; border: 1px solid var(--color-slate-200); font-size: 13px;">
+          🕒 Nội dung hiển thị Tab: <strong>Lịch Sử Tra Cứu (48 từ gần đây)</strong>
+        </div>
+      </div>
+
+      <div class="code-box">
+        <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        <pre>&lt;PillTabs&lt;'favorites' | 'history'&gt;
+  tabs={[
+    { id: 'favorites', label: 'Từ Yêu Thích', icon: &lt;Star /&gt;, badge: '12' },
+    { id: 'history', label: 'Lịch Sử', icon: &lt;Clock /&gt;, badge: '48' },
+  ]}
+  activeTab={subTab}
+  onChange={setSubTab}
+/&gt;</pre>
+      </div>
+    </section>
+
+    <!-- 8. INPUT -->
+    <section id="input" class="component-card">
+      <div class="component-header">
+        <div class="component-info">
+          <h3>✏️ Input</h3>
+          <p>Ô nhập liệu form tiêu chuẩn hỗ trợ 3 kích cỡ, nhãn tiêu đề, chú thích, thông báo lỗi và icon.</p>
+        </div>
+        <span class="component-path">@/components/ui/Input.tsx</span>
+      </div>
+
+      <div class="preview-arena">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 800px;">
+          <!-- Standard Input with Icon -->
+          <div class="input-wrap">
+            <label class="input-label">Phím tắt toàn cục (Global Hotkey):</label>
+            <div class="input-box-relative">
+              <div class="input-icon-left">
+                <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6.01" y2="8"></line><line x1="10" y1="8" x2="10.01" y2="8"></line><line x1="14" y1="8" x2="14.01" y2="8"></line><line x1="18" y1="8" x2="18.01" y2="8"></line><line x1="6" y1="12" x2="6.01" y2="12"></line><line x1="10" y1="12" x2="10.01" y2="12"></line><line x1="14" y1="12" x2="14.01" y2="12"></line><line x1="18" y1="12" x2="18.01" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
+              </div>
+              <input type="text" class="input-field input-field-md with-icon font-mono" value="Alt+Q" style="font-weight: 700; color: var(--color-primary);">
+            </div>
+            <div class="input-helper">Bấm để thay đổi tổ hợp phím tắt.</div>
+          </div>
+
+          <!-- Error State Input -->
+          <div class="input-wrap">
+            <label class="input-label">Azure Speech Key:</label>
+            <div class="input-box-relative">
+              <input type="password" class="input-field input-field-md error" value="invalid_key_123">
+            </div>
+            <div class="input-helper error">Key không hợp lệ hoặc đã hết hạn dịch vụ.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-box">
+        <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        <pre>&lt;Input
+  label="Phím tắt toàn cục:"
+  value={hotkey}
+  onChange={(e) =&gt; setHotkey(e.target.value)}
+  leftIcon={&lt;Keyboard className="w-4 h-4" /&gt;}
+  helperText="Bôi đen chữ và bấm phím này để tra cứu."
+/&gt;</pre>
+      </div>
+    </section>
+
+    <!-- 9. CARD -->
+    <section id="card" class="component-card">
+      <div class="component-header">
+        <div class="component-info">
+          <h3>🗂️ Card</h3>
+          <p>Thẻ bao bọc nội dung đa năng hỗ trợ 5 biến thể: <code>default</code>, <code>flat</code>, <code>bordered</code>, <code>hud</code>, và <code>dashed</code>.</p>
+        </div>
+        <span class="component-path">@/components/ui/Card.tsx</span>
+      </div>
+
+      <div class="preview-arena">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+          <div class="card card-2xl card-default">
+            <div style="font-weight: 700; font-size: 13px; color: var(--color-slate-800);">variant="default"</div>
+            <div style="font-size: 12px; color: var(--color-slate-500); margin-top: 4px;">Nền trắng, viền mảnh, shadow-xs nhẹ.</div>
+          </div>
+          <div class="card card-2xl card-flat">
+            <div style="font-weight: 700; font-size: 13px; color: var(--color-slate-800);">variant="flat"</div>
+            <div style="font-size: 12px; color: var(--color-slate-500); margin-top: 4px;">Nền xám slate-50, không đổ bóng.</div>
+          </div>
+          <div class="card card-2xl card-bordered">
+            <div style="font-weight: 700; font-size: 13px; color: var(--color-slate-800);">variant="bordered"</div>
+            <div style="font-size: 12px; color: var(--color-slate-500); margin-top: 4px;">Viền đậm 2px rõ nét.</div>
+          </div>
+          <div class="card card-2xl card-dashed">
+            <div style="font-weight: 700; font-size: 13px; color: var(--color-slate-800);">variant="dashed"</div>
+            <div style="font-size: 12px; color: var(--color-slate-500); margin-top: 4px;">Viền nét đứt dùng cho placeholder.</div>
+          </div>
+          <div class="card card-2xl card-hud">
+            <div style="font-weight: 700; font-size: 13px; color: var(--color-slate-800);">variant="hud"</div>
+            <div style="font-size: 12px; color: var(--color-slate-500); margin-top: 4px;">Đổ bóng nổi khối HUD độc lập.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-box">
+        <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        <pre>&lt;Card variant="default" rounded="2xl" className="p-4 flex items-center justify-between"&gt;
+  &lt;span&gt;Nội dung bên trong thẻ&lt;/span&gt;
+&lt;/Card&gt;</pre>
+      </div>
+    </section>
+
+    <!-- 10. BADGE -->
+    <section id="badge" class="component-card">
+      <div class="component-header">
+        <div class="component-info">
+          <h3>🏷️ Badge</h3>
+          <p>Huy hiệu trạng thái, đếm số lượng, nguồn dữ liệu hỗ trợ 5 màu sắc ngữ nghĩa.</p>
+        </div>
+        <span class="component-path">@/components/ui/Badge.tsx</span>
+      </div>
+
+      <div class="preview-arena">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <span class="badge badge-md badge-primary">Primary (122,500+ từ)</span>
+          <span class="badge badge-md badge-success">Success (Đã kết nối Anki)</span>
+          <span class="badge badge-md badge-warning">Warning (Hết hạn API)</span>
+          <span class="badge badge-md badge-purple">Purple (Edge Neural AI)</span>
+          <span class="badge badge-md badge-neutral">Neutral (Tự động)</span>
+        </div>
+      </div>
+
+      <div class="code-box">
+        <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+        <pre>&lt;Badge variant="primary" size="md"&gt;122,500+ từ vựng&lt;/Badge&gt;</pre>
+      </div>
+    </section>
+
+    <!-- SECTION: DOMAIN LINGUISTICS -->
+    <section id="domain-hanzi" class="component-card">
+      <div class="component-header">
+        <div class="component-info">
+          <h3>🏮 Domain Linguistic Components (Đặc thù HyDict)</h3>
+          <p>Các khối nguyên tử chuyên trách xử lý Pinyin có màu thanh điệu và huy hiệu cấp độ HSK 1 - 6.</p>
+        </div>
+        <span class="component-path">@/modules/dictionary/components/</span>
+      </div>
+
+      <div class="preview-arena">
+        <div class="row-label">Tone Colored Pinyin (Mã màu 4 thanh điệu chuẩn quốc tế):</div>
+        <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
+          <div class="tone-pinyin"><span style="color: #dc2626;">mā</span> (Thanh 1 - Đỏ)</div>
+          <div class="tone-pinyin"><span style="color: #d97706;">má</span> (Thanh 2 - Cam)</div>
+          <div class="tone-pinyin"><span style="color: #059669;">mǎ</span> (Thanh 3 - Lục)</div>
+          <div class="tone-pinyin"><span style="color: #2563eb;">mà</span> (Thanh 4 - Lam)</div>
+          <div class="tone-pinyin"><span style="color: #64748b;">ma</span> (Khinh thanh - Xám)</div>
+        </div>
+
+        <div class="row-label">Huy hiệu cấp độ HSK 1 đến HSK 6:</div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <span class="hsk-badge hsk-1">HSK 1</span>
+          <span class="hsk-badge hsk-2">HSK 2</span>
+          <span class="hsk-badge hsk-3">HSK 3</span>
+          <span class="hsk-badge hsk-4">HSK 4</span>
+          <span class="hsk-badge hsk-5">HSK 5</span>
+          <span class="hsk-badge hsk-6">HSK 6</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: LIVE INTERACTIVE SCREEN DEMO -->
+    <section id="live-playground" class="component-card" style="border: 2px solid var(--color-primary-border);">
+      <div class="component-header">
+        <div class="component-info">
+          <h3>🚀 Live Screen Demo (Màn hình thực tế tích hợp toàn bộ các component)</h3>
+          <p>Mô phỏng 1 màn hình hoàn chỉnh của HyDict: Tất cả các nút bấm, ô tìm kiếm và công tắc đều hoạt động mượt mà.</p>
+        </div>
+        <span class="badge badge-md badge-success">Live Ready</span>
+      </div>
+
+      <div class="card card-3xl card-default" style="padding: 24px; background: #ffffff;">
+        <!-- Top Toolbar -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: gap; gap: 16px;">
+          <div>
+            <div style="font-size: 16px; font-weight: 800; color: var(--color-slate-900);">Sổ Tay Từ Vựng & Lịch Sử Tra Cứu</div>
+            <div style="font-size: 12px; color: var(--color-slate-500);">Quản lý kho từ yêu thích và xem lại lịch sử tra cứu gần đây</div>
+          </div>
+          <div class="pill-tabs">
+            <button class="pill-tab-item active">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" style="fill: #f59e0b; stroke: #f59e0b;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <span>Từ Yêu Thích (2)</span>
+            </button>
+            <button class="pill-tab-item">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span>Lịch Sử (48)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 48px Search Bar -->
+        <div class="search-input-wrap" style="margin-bottom: 20px;">
+          <div class="search-input-icon">
+            <svg class="icon icon-lg" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <input type="text" class="search-input-field" value="学习" placeholder="Lọc theo chữ Hán, pinyin hoặc giải nghĩa...">
+          <div class="search-input-action">
+            <button class="btn btn-outline btn-sm">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" style="color: var(--color-primary);"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Xuất sang CSV / Anki</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2 Vocabulary Cards using Card & IconButton -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <!-- Card 1 -->
+          <div class="card card-2xl card-default" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-family: var(--font-cjk); font-size: 22px; font-weight: 900; color: var(--color-slate-900);">学习</span>
+                  <span class="hsk-badge hsk-1">HSK 1</span>
+                  <button class="icon-btn icon-btn-md icon-btn-ghost" title="Phát âm Yunxi Neural">
+                    <svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                  </button>
+                </div>
+                <button class="icon-btn icon-btn-md icon-btn-danger" title="Xóa khỏi sổ tay">
+                  <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px;">
+                <span class="tone-pinyin"><span style="color: #2563eb;">xué</span> <span style="color: #2563eb;">xí</span></span>
+                <span style="font-size: 11px; font-weight: 700; background: var(--color-emerald-50); color: var(--color-emerald-700); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--color-emerald-100);">HỌC TẬP</span>
+              </div>
+
+              <p style="font-size: 12.5px; color: var(--color-slate-600); margin-top: 8px; line-height: 1.4;">
+                Học, học tập, nghiên cứu kiến thức, kỹ năng.
+              </p>
+            </div>
+
+            <div style="margin-top: 14px; pt: 10px; border-top: 1px solid var(--color-slate-100); display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--color-slate-400);">
+              <span>14:20 - 16/10/2026</span>
+              <button class="btn btn-ghost btn-sm" style="color: var(--color-primary); font-weight: 700;">Xem chi tiết &rarr;</button>
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="card card-2xl card-default" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-family: var(--font-cjk); font-size: 22px; font-weight: 900; color: var(--color-slate-900);">工作</span>
+                  <span class="hsk-badge hsk-1">HSK 1</span>
+                  <button class="icon-btn icon-btn-md icon-btn-ghost" title="Phát âm Yunxi Neural">
+                    <svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                  </button>
+                </div>
+                <button class="icon-btn icon-btn-md icon-btn-danger" title="Xóa khỏi sổ tay">
+                  <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px;">
+                <span class="tone-pinyin"><span style="color: #dc2626;">gōng</span> <span style="color: #2563eb;">zuò</span></span>
+                <span style="font-size: 11px; font-weight: 700; background: var(--color-emerald-50); color: var(--color-emerald-700); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--color-emerald-100);">CÔNG TÁC</span>
+              </div>
+
+              <p style="font-size: 12.5px; color: var(--color-slate-600); margin-top: 8px; line-height: 1.4;">
+                Làm việc, lao động; công việc, nghề nghiệp.
+              </p>
+            </div>
+
+            <div style="margin-top: 14px; pt: 10px; border-top: 1px solid var(--color-slate-100); display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--color-slate-400);">
+              <span>10:05 - 16/10/2026</span>
+              <button class="btn btn-ghost btn-sm" style="color: var(--color-primary); font-weight: 700;">Xem chi tiết &rarr;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Search input clear button toggle
+    function toggleSearchClear(input) {
+      const clearBtn = document.getElementById('demoSearchClearBtn');
+      if (input.value.trim().length > 0) {
+        clearBtn.style.display = 'flex';
+      } else {
+        clearBtn.style.display = 'none';
+      }
+    }
+
+    function clearSearchField() {
+      const input = document.getElementById('demoSearchField');
+      input.value = '';
+      input.focus();
+      toggleSearchClear(input);
+    }
+
+    // Switch interactive toggle
+    function toggleSwitch(container) {
+      const toggle = container.querySelector('.switch-toggle');
+      toggle.classList.toggle('active');
+    }
+
+    // Tab switcher
+    function switchDemoTab(btn, targetContentId) {
+      const container = document.getElementById('demoPillTabs');
+      container.querySelectorAll('.pill-tab-item').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.getElementById('favTabContent').style.display = 'none';
+      document.getElementById('histTabContent').style.display = 'none';
+      document.getElementById(targetContentId).style.display = 'block';
+    }
+
+    // Copy code snippet helper
+    function copyCode(btn) {
+      const pre = btn.nextElementSibling;
+      navigator.clipboard.writeText(pre.innerText).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = 'Copied! ✓';
+        btn.style.background = '#059669';
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.style.background = 'rgba(255, 255, 255, 0.1)';
+        }, 1500);
+      });
+    }
+
+    // Highlight active nav item on scroll
+    window.addEventListener('scroll', () => {
+      const sections = document.querySelectorAll('section');
+      const navLinks = document.querySelectorAll('.nav-link');
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 80;
+        if (pageYOffset >= sectionTop) {
+          current = section.getAttribute('id');
+        }
+      });
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
