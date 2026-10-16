@@ -271,6 +271,35 @@ assert(isSingleChineseChar('书') === true, 'Ký tự "书" là chữ Hán đơn
 assert(isSingleChineseChar('这本书') === false, 'Cụm từ "这本书" không phải chữ Hán đơn');
 assert(isSingleChineseChar('A') === false, 'Ký tự Latinh "A" không phải chữ Hán');
 
+// Tests cho tính năng Edge Read Aloud Neural Voices & Dropdown Selection (EPIC-TTS)
+import { SUPPORTED_TTS_VOICES } from '../src/modules/tts-audio';
+
+const maleVoices = SUPPORTED_TTS_VOICES.filter((v) => v.gender === 'male');
+assert(maleVoices.length >= 3, '[EPIC-TTS] Có ít nhất 3 giọng Nam Neural (Yunxi, Yunjian, Yunyang)');
+assert(maleVoices.some((v) => v.id === 'zh-CN-YunxiNeural'), '[EPIC-TTS] Danh sách có giọng Nam Yunxi (zh-CN-YunxiNeural)');
+assert(maleVoices.some((v) => v.id === 'zh-CN-YunjianNeural'), '[EPIC-TTS] Danh sách có giọng Nam Yunjian (zh-CN-YunjianNeural)');
+
+const femaleVoices = SUPPORTED_TTS_VOICES.filter((v) => v.gender === 'female');
+assert(femaleVoices.length >= 4, '[EPIC-TTS] Có ít nhất 4 giọng Nữ Neural (Xiaoxiao, Xiaoyi, Xiaobei, HiuMaan)');
+assert(femaleVoices.some((v) => v.id === 'zh-CN-XiaoxiaoNeural'), '[EPIC-TTS] Danh sách có giọng Nữ Xiaoxiao (zh-CN-XiaoxiaoNeural)');
+
+const fallbackVoices = SUPPORTED_TTS_VOICES.filter((v) => v.group === 'fallback');
+assert(fallbackVoices.length >= 2, '[EPIC-TTS] Có đầy đủ 2 nguồn dự phòng miễn phí (Google Native TTS & Youdao)');
+
+// Kiểm tra mã nguồn Rust edge_tts.rs
+const edgeTtsRs = fs.readFileSync(path.resolve(process.cwd(), 'src-tauri/src/edge_tts.rs'), 'utf-8');
+assert(edgeTtsRs.includes('generate_sec_ms_gec_v2'), '[EPIC-TTS Rust] Triển khai hàm tính toán DRM token v2');
+assert(edgeTtsRs.includes('synthesize_edge_tts'), '[EPIC-TTS Rust] Triển khai WebSocket streaming audio từ Bing Read Aloud');
+assert(edgeTtsRs.includes('synthesize_speech'), '[EPIC-TTS Rust] Đăng ký Tauri command synthesize_speech');
+
+// Kiểm tra SystemSettingsTab UI Dropdown & Speed Slider
+const settingsTabTsx = fs.readFileSync(path.resolve(process.cwd(), 'src/modules/main-window/components/SystemSettingsTab.tsx'), 'utf-8');
+assert(settingsTabTsx.includes('ttsVoiceSelect'), '[EPIC-TTS UI] SystemSettingsTab sử dụng Menu Dropdown select cho danh sách giọng đọc');
+assert(settingsTabTsx.includes('optgroup'), '[EPIC-TTS UI] Dropdown phân nhóm rõ ràng (optgroup Giọng Nam / Nữ / Dự phòng)');
+assert(settingsTabTsx.includes('ttsSpeed'), '[EPIC-TTS UI] Có thanh trượt điều chỉnh tốc độ đọc (ttsSpeed slider)');
+assert(settingsTabTsx.includes('handleTestCurrentVoice'), '[EPIC-TTS UI] Có nút nghe thử giọng đọc trực tiếp');
+
+
 // Tests cho module 06-anki-bridge
 import { createAnkiPayload, buildAnkiConnectRequestBody } from '../src/modules/anki-bridge';
 
@@ -443,6 +472,20 @@ assert(libRsContent.includes('SendInput'), '[Clipboard Copy] Sử dụng SendInp
 assert(libRsContent.includes('HYDICT_EXTRA_INFO'), '[IME Compatibility] Gắn cờ HYDICT_EXTRA_INFO (0x11A011A0) chống xung đột bộ gõ VCKey/UniKey');
 assert(libRsContent.includes('std::thread::spawn'), '[Non-Blocking Hotkey] Xử lý phím tắt bất đồng bộ trong background thread tránh treo Windows LowLevelHook');
 
+// Kiểm thử tính năng Taskbar Icon (AppUserModelID & Win32 WM_SETICON)
+const mainRsContent = fs.readFileSync(path.resolve(process.cwd(), 'src-tauri/src/main.rs'), 'utf-8');
+assert(mainRsContent.includes('SetCurrentProcessExplicitAppUserModelID'), '[Taskbar Icon] main.rs đăng ký SetCurrentProcessExplicitAppUserModelID cho Windows Shell');
+assert(mainRsContent.includes('com.hydict.desktop'), '[Taskbar Icon] AUMID định danh com.hydict.desktop chuẩn xác');
+assert(libRsContent.includes('WM_SETICON') && libRsContent.includes('GCLP_HICON'), '[Taskbar Icon] lib.rs gán native Win32 WM_SETICON và GCLP_HICON vào HWND');
+
+// Kiểm thử tính năng Ghi nhớ kích thước cửa sổ (Window State Persistence)
+const windowStateRs = fs.readFileSync(path.resolve(process.cwd(), 'src-tauri/src/window_state.rs'), 'utf-8');
+assert(windowStateRs.includes('load_window_state') && windowStateRs.includes('WindowState'), '[Window State] window_state.rs triển khai cấu trúc WindowState và hàm load_window_state');
+assert(windowStateRs.includes('update_window_geometry') && windowStateRs.includes('flush_window_state'), '[Window State] window_state.rs hỗ trợ update_window_geometry và flush_window_state bền vững');
+assert(libRsContent.includes('WindowEvent::Resized') && libRsContent.includes('window_state::update_window_geometry'), '[Window State] lib.rs lắng nghe sự kiện WindowEvent::Resized để tự động cập nhật kích thước');
+assert(libRsContent.includes('window_state::load_window_state'), '[Window State] lib.rs nạp và khôi phục kích thước trước khi hiển thị cửa sổ (Zero Flicker)');
+assert(libRsContent.includes('get_saved_window_state') && libRsContent.includes('save_current_window_state'), '[Window State] IPC commands get_saved_window_state và save_current_window_state được đăng ký');
+
 // Kiểm thử Phase 4: Screen Capture OCR (EPIC-12)
 const snipperWindowConf = appWindows.find((w: any) => w.label === 'snipper');
 assert(snipperWindowConf !== undefined, '[Screen Snipper] Cửa sổ "snipper" được cấu hình trong tauri.conf.json');
@@ -467,7 +510,9 @@ assert(snipperTsx.includes('execute_screen_ocr'), '[Frontend UI] ScreenSnipper.t
 assert(snipperTsx.includes('Escape') && snipperTsx.includes('onContextMenu'), '[Frontend UI] ScreenSnipper.tsx hỗ trợ phím Esc và click phải để hủy');
 
 // Kiểm thử đóng gói Portable Release đầy đủ các tệp DLL runtime phụ thuộc
-const distDir = path.resolve(process.cwd(), 'dist-release/HyDict-v2.0.0');
+const distDir = fs.existsSync(path.resolve(process.cwd(), 'dist-release/HyDict-v2.1.0'))
+  ? path.resolve(process.cwd(), 'dist-release/HyDict-v2.1.0')
+  : path.resolve(process.cwd(), 'dist-release/HyDict-v2.0.0');
 if (fs.existsSync(distDir)) {
   assert(fs.existsSync(path.join(distDir, 'HyDict.exe')), '[Portable Release] Tệp HyDict.exe tồn tại trong gói phát hành');
   assert(fs.existsSync(path.join(distDir, 'libunwind.dll')), '[Portable Release] Tệp runtime libunwind.dll được đóng gói kèm HyDict.exe');

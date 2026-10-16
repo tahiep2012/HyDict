@@ -1,10 +1,12 @@
 pub mod db;
+pub mod edge_tts;
 pub mod hotkey;
 pub mod ocr;
 pub mod screen_capture;
 pub mod segmentation;
 pub mod tts;
 pub mod window_hud;
+pub mod window_state;
 
 use db::DbState;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -262,6 +264,7 @@ fn open_main_window(app: tauri::AppHandle, word: Option<String>) {
 
 #[tauri::command]
 fn exit_app() {
+    window_state::flush_window_state();
     std::process::exit(0);
 }
 
@@ -447,8 +450,8 @@ pub fn run() {
             let quit_i = MenuItem::with_id(app, "quit", "Thoát HyDict", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
 
-            // Khởi tạo icon chuẩn từ biểu tượng mới (nhúng trực tiếp 128x128.png)
-            let icon_bytes = include_bytes!("../icons/128x128.png");
+            // Khởi tạo icon chuẩn từ biểu tượng mới (nhúng trực tiếp icon.png 512x512 sắc nét)
+            let icon_bytes = include_bytes!("../icons/icon.png");
             let app_icon = tauri::image::Image::from_bytes(icon_bytes).expect("valid embedded icon");
 
             // Đặt biểu tượng trực tiếp cho cửa sổ chính và cửa sổ HUD
@@ -509,7 +512,62 @@ pub fn run() {
             // Quản lý tray trong App State để tránh bị drop
             app.manage(tray);
 
+            // Khôi phục kích thước và vị trí cửa sổ chính từ trạng thái lưu gần nhất
+            let saved_state = window_state::load_window_state();
             if let Some(main_window) = app.get_webview_window("main") {
+                if saved_state.is_maximized {
+                    let _ = main_window.maximize();
+                } else {
+                    let _ = main_window.set_size(tauri::LogicalSize::new(saved_state.width, saved_state.height));
+                    if let (Some(x), Some(y)) = (saved_state.x, saved_state.y) {
+                        let _ = main_window.set_position(tauri::PhysicalPosition::new(x, y));
+                    }
+                }
+
+                #[cfg(target_os = "windows")]
+                {
+                    // Thiết lập native Win32 icons trực tiếp cho HWND để Taskbar hiển thị chính xác
+                    if let Ok(hwnd) = main_window.hwnd() {
+                        use windows_sys::Win32::UI::WindowsAndMessaging::{
+                            SendMessageW, SetClassLongPtrW, GCLP_HICON, GCLP_HICONSM, ICON_BIG, ICON_SMALL,
+                            LoadImageW, IMAGE_ICON, LR_DEFAULTCOLOR, SM_CXICON, SM_CYICON, SM_CXSMICON, SM_CYSMICON,
+                            GetSystemMetrics, WM_SETICON,
+                        };
+                        extern "system" {
+                            fn GetModuleHandleW(lpModuleName: *const u16) -> *mut std::ffi::c_void;
+                        }
+                        unsafe {
+                            let hwnd_ptr = hwnd.0 as *mut std::ffi::c_void;
+                            let hinst = GetModuleHandleW(std::ptr::null());
+                            let idi_app = 1 as *const u16; // Standard application icon resource ID
+                            let hicon_big = LoadImageW(
+                                hinst,
+                                idi_app,
+                                IMAGE_ICON,
+                                GetSystemMetrics(SM_CXICON),
+                                GetSystemMetrics(SM_CYICON),
+                                LR_DEFAULTCOLOR,
+                            );
+                            let hicon_sm = LoadImageW(
+                                hinst,
+                                idi_app,
+                                IMAGE_ICON,
+                                GetSystemMetrics(SM_CXSMICON),
+                                GetSystemMetrics(SM_CYSMICON),
+                                LR_DEFAULTCOLOR,
+                            );
+                            if !hicon_big.is_null() {
+                                SendMessageW(hwnd_ptr, WM_SETICON, ICON_BIG as usize, hicon_big as isize);
+                                SetClassLongPtrW(hwnd_ptr, GCLP_HICON, hicon_big as isize);
+                            }
+                            if !hicon_sm.is_null() {
+                                SendMessageW(hwnd_ptr, WM_SETICON, ICON_SMALL as usize, hicon_sm as isize);
+                                SetClassLongPtrW(hwnd_ptr, GCLP_HICONSM, hicon_sm as isize);
+                            }
+                        }
+                    }
+                }
+
                 let _ = main_window.show();
                 let _ = main_window.unminimize();
                 let _ = main_window.set_focus();
@@ -519,12 +577,41 @@ pub fn run() {
         })
         .on_window_event(|window, event| {
             match event {
+                tauri::WindowEvent::Resized(size) => {
+                    if window.label() == "main" {
+                        if let Ok(is_max) = window.is_maximized() {
+                            if let Ok(is_min) = window.is_minimized() {
+                                if !is_max && !is_min {
+                                    if let Ok(scale) = window.scale_factor() {
+                                        let logical = size.to_logical::<f64>(scale);
+                                        window_state::update_window_geometry(logical.width, logical.height, None, None, false);
+                                    }
+                                } else if is_max {
+                                    window_state::update_window_geometry(0.0, 0.0, None, None, true);
+                                }
+                            }
+                        }
+                    }
+                }
+                tauri::WindowEvent::Moved(pos) => {
+                    if window.label() == "main" {
+                        if let Ok(is_max) = window.is_maximized() {
+                            if !is_max {
+                                window_state::update_window_geometry(0.0, 0.0, Some(pos.x), Some(pos.y), false);
+                            }
+                        }
+                    }
+                }
                 tauri::WindowEvent::CloseRequested { api, .. } => {
-                    // Khi người dùng bấm nút 'X' ở cửa sổ chính, ẩn xuống khay hệ thống (System Tray) thay vì tắt hẳn ứng dụng
+                    // Khi người dùng bấm nút 'X' ở cửa sổ chính, lưu trạng thái và ẩn xuống khay hệ thống (System Tray)
                     if window.label() == "main" {
                         api.prevent_close();
+                        window_state::flush_window_state();
                         let _ = window.hide();
                     }
+                }
+                tauri::WindowEvent::Destroyed => {
+                    window_state::flush_window_state();
                 }
                 tauri::WindowEvent::Focused(false) => {
                     if window.label() == "hud" {
@@ -560,7 +647,10 @@ pub fn run() {
             db::lookup_dictionary,
             db::search_suggestions,
             db::search_dictionary_multi,
-            tts::get_audio_cache_path
+            tts::get_audio_cache_path,
+            edge_tts::synthesize_speech,
+            window_state::get_saved_window_state,
+            window_state::save_current_window_state
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

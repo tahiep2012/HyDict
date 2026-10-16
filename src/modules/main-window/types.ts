@@ -11,6 +11,7 @@ export interface AppSettings {
   ankiModel: string;
   ankiConnected: boolean;
   ttsVoice: string;
+  ttsSpeed?: number;
   ttsAutoplay: boolean;
   autoStartWithWindows: boolean;
 }
@@ -23,7 +24,8 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   ankiDeck: 'Tiếng Trung (HSK 1 - 6)',
   ankiModel: 'HyDict-Rich-Card',
   ankiConnected: true,
-  ttsVoice: 'zh-CN-XiaoxiaoNeural',
+  ttsVoice: 'zh-CN-YunxiNeural',
+  ttsSpeed: 1.0,
   ttsAutoplay: true,
   autoStartWithWindows: true,
 };

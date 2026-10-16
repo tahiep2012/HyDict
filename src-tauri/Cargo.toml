@@ -1,6 +1,6 @@
 [package]
 name = "hydict-desktop"
-version = "2.0.0"
+version = "2.1.0"
 description = "HyDict Desktop - Smart Popup Dictionary for Windows & Anki"
 authors = ["HyDict Team"]
 edition = "2021"
@@ -36,3 +36,7 @@ windows = { version = "0.62", features = [
     "Graphics_Imaging",
     "Storage_Streams",
 ] }
+tokio-tungstenite = { version = "0.24", features = ["native-tls"] }
+futures-util = "0.3"
+chrono = "0.4"
+uuid = { version = "1", features = ["v4"] }

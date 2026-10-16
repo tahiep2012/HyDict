@@ -4,7 +4,16 @@ export interface AudioPlaybackState {
   error: string | null;
 }
 
-export type TtsEngine = 'google' | 'baidu' | 'azure' | 'system';
+export type TtsEngine = 'edge' | 'google' | 'youdao' | 'baidu' | 'azure' | 'system';
+
+export interface VoiceDefinition {
+  id: string;
+  name: string;
+  gender: 'male' | 'female';
+  desc: string;
+  group: 'neural_male' | 'neural_female' | 'fallback';
+  recommended?: boolean;
+}
 
 export interface AzureSpeechConfig {
   apiKey?: string;

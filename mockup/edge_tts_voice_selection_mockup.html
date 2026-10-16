@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mockup: Hệ Thống Giọng Đọc Nơ-ron AI Miễn Phí 100% - HyDict Desktop</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .font-cjk { font-family: 'Noto Sans SC', sans-serif; }
+    @keyframes wave {
+      0%, 100% { height: 6px; }
+      50% { height: 22px; }
+    }
+    .wave-bar:nth-child(1) { animation: wave 1s infinite 0.1s ease-in-out; }
+    .wave-bar:nth-child(2) { animation: wave 1s infinite 0.25s ease-in-out; }
+    .wave-bar:nth-child(3) { animation: wave 1s infinite 0.4s ease-in-out; }
+    .wave-bar:nth-child(4) { animation: wave 1s infinite 0.15s ease-in-out; }
+    .wave-bar:nth-child(5) { animation: wave 1s infinite 0.3s ease-in-out; }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen p-4 md:p-8 flex flex-col items-center justify-start text-slate-800">
+
+  <!-- Desktop App Container Window -->
+  <div class="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+    
+    <!-- Titlebar mô phỏng ứng dụng Desktop -->
+    <div class="bg-slate-50 border-b border-slate-200 px-5 py-3.5 flex items-center justify-between select-none">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-rose-600 to-red-500 flex items-center justify-center text-white shadow-sm font-bold text-xs">
+          HY
+        </div>
+        <div>
+          <span class="font-bold text-sm text-slate-800">HyDict Desktop</span>
+          <span class="ml-2 px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-800 rounded-full">v2.1.0 Free Neural Voice</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-3 h-3 rounded-full bg-slate-300"></span>
+        <span class="inline-block w-3 h-3 rounded-full bg-slate-300"></span>
+        <span class="inline-block w-3 h-3 rounded-full bg-rose-400"></span>
+      </div>
+    </div>
+
+    <!-- Header Section -->
+    <div class="p-6 pb-4 border-b border-slate-100">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            Cài Đặt Giọng Đọc & Động Cơ Phát Âm
+          </h1>
+          <p class="text-xs text-slate-500 mt-1">
+            Trải nghiệm hệ thống giọng nơ-ron AI (Edge Neural Voices) đa dạng Nam & Nữ hoàn toàn miễn phí không cần API Key
+          </p>
+        </div>
+        <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-xs font-semibold shadow-sm">
+          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span id="activeStatusPill">100% Miễn phí & Không cần Key</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body Settings Content -->
+    <div class="p-6 space-y-6">
+
+      <!-- 1. AUTO-START & GENERAL BEHAVIOR -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center justify-between hover:border-slate-300 transition-all">
+        <div class="space-y-0.5">
+          <div class="font-bold text-sm text-slate-800 flex items-center gap-2">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Khởi động cùng Windows (Auto Start)
+          </div>
+          <p class="text-xs text-slate-500">
+            Tự động chạy ngầm dưới khay hệ thống (System Tray) khi bạn mở máy tính.
+          </p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" checked class="sr-only peer" />
+          <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+        </label>
+      </div>
+
+      <!-- 2. TRUNG TÂM GIỌNG ĐỌC AI NƠ-RON (FREE EDGE NEURAL & DROPDOWN MENU) -->
+      <div class="bg-white p-5 rounded-2xl border-2 border-indigo-500/30 bg-gradient-to-b from-indigo-50/20 to-transparent space-y-5 shadow-sm">
+        
+        <!-- Section Header -->
+        <div class="flex items-center justify-between border-b border-indigo-100/60 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-200">
+              <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
+            </div>
+            <div>
+              <span class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                Bộ máy Giọng Đọc Phát Âm AI (Neural Voice Engine)
+                <span class="px-2 py-0.5 text-[10px] font-bold bg-indigo-100 text-indigo-700 rounded-full">Miễn Phí 100%</span>
+              </span>
+              <span class="block text-[11px] text-slate-500">
+                Tích hợp trực tiếp công nghệ giọng đọc người thật Microsoft Edge Read Aloud mà không đòi hỏi tài khoản
+              </span>
+            </div>
+          </div>
+          <span id="badgeVoiceType" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+            Giọng Nam (Yunxi)
+          </span>
+        </div>
+
+        <!-- Dropdown & Nghe thử hàng ngang -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+          
+          <!-- Dropdown Select -->
+          <div class="sm:col-span-8 relative">
+            <label class="block text-[11px] font-bold text-slate-700 mb-1.5">
+              Chọn giọng đọc tiếng Trung ưu tiên:
+            </label>
+            <div class="relative">
+              <select
+                id="voiceDropdown"
+                onchange="onVoiceChange()"
+                class="w-full pl-3.5 pr-10 py-2.5 bg-white border-2 border-slate-300 hover:border-indigo-500 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 rounded-xl text-xs font-semibold text-slate-800 transition-all cursor-pointer shadow-sm outline-none appearance-none"
+              >
+                <optgroup label="👨 GIỌNG NAM NƠ-RON AI (Cực kỳ tự nhiên, truyền cảm - Miễn phí 100%)">
+                  <option value="zh-CN-YunxiNeural" selected>Yunxi (zh-CN-YunxiNeural) 👨 - Giọng Nam thanh niên, sôi nổi, truyền cảm</option>
+                  <option value="zh-CN-YunjianNeural">Yunjian (zh-CN-YunjianNeural) 👨 - Giọng Nam phát thanh viên, trầm ấm, lịch lãm</option>
+                  <option value="zh-CN-YunyangNeural">Yunyang (zh-CN-YunyangNeural) 👨 - Giọng Nam thời sự, tin tức, chững chạc</option>
+                </optgroup>
+
+                <optgroup label="👩 GIỌNG NỮ NƠ-RON AI (Ngữ điệu Bắc Kinh mượt mà - Miễn phí 100%)">
+                  <option value="zh-CN-XiaoxiaoNeural">Xiaoxiao (zh-CN-XiaoxiaoNeural) 👩 - Giọng Nữ Bắc Kinh, ấm áp, giàu cảm xúc</option>
+                  <option value="zh-CN-XiaoyiNeural">Xiaoyi (zh-CN-XiaoyiNeural) 👩 - Giọng Nữ nhẹ nhàng, trong sáng, hoạt bát</option>
+                </optgroup>
+
+                <optgroup label="🌐 ĐỘNG CƠ DỰ PHÒNG TRUYỀN THỐNG (Google & Youdao)">
+                  <option value="google-female">Google Translate Native TTS 👩 - Giọng Nữ chuẩn phổ thông (Dự phòng)</option>
+                  <option value="youdao-female">Youdao Dict Voice 👩 - Giọng Nữ từ điển Hán - Việt siêu tốc</option>
+                </optgroup>
+              </select>
+
+              <!-- Arrow Icon -->
+              <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nút Nghe Thử -->
+          <div class="sm:col-span-4 flex flex-col justify-end">
+            <label class="block text-[11px] font-bold text-slate-700 mb-1.5 opacity-0 hidden sm:block">
+              Thao tác:
+            </label>
+            <button
+              id="testPlayBtn"
+              onclick="playSampleVoice()"
+              class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all focus:ring-4 focus:ring-indigo-200"
+            >
+              <svg id="playIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span id="playBtnText">Nghe thử giọng</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Controls: Tốc độ phát âm & Tùy chọn câu mẫu -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+          
+          <!-- Tốc độ đọc (Speech Rate) -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-700">Tốc độ phát âm (Speed):</span>
+              <span id="rateLabel" class="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">1.0x (Chuẩn)</span>
+            </div>
+            <input
+              id="rateSlider"
+              type="range"
+              min="0.75"
+              max="1.5"
+              step="0.05"
+              value="1.0"
+              oninput="onRateChange(this.value)"
+              class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+            />
+            <div class="flex justify-between text-[10px] text-slate-400">
+              <span>0.75x (Chậm)</span>
+              <span>1.0x (Tự nhiên)</span>
+              <span>1.5x (Nhanh)</span>
+            </div>
+          </div>
+
+          <!-- Tùy chọn câu mẫu để nghe thử -->
+          <div class="space-y-1.5">
+            <span class="block text-xs font-semibold text-slate-700">Chọn câu mẫu tiếng Trung để nghe thử:</span>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                onclick="setSampleText('你好，很高兴认识你。')"
+                class="px-2.5 py-1.5 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 border border-slate-200 rounded-xl text-[11px] font-medium text-slate-700 truncate text-left transition-all"
+                title="你好，很高兴认识你。"
+              >
+                🗣️ 你好，很高兴认识你。
+              </button>
+              <button
+                onclick="setSampleText('我们得赶快去火车站了。')"
+                class="px-2.5 py-1.5 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 border border-slate-200 rounded-xl text-[11px] font-medium text-slate-700 truncate text-left transition-all"
+                title="我们得赶快去火车站了。"
+              >
+                🚆 我们得赶快去火车站了。
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Banner Thông Báo Miễn Phí Thông Minh -->
+        <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs text-emerald-900">
+          <div class="flex items-center gap-2.5">
+            <div class="w-6 h-6 rounded-lg bg-emerald-200 text-emerald-800 flex items-center justify-center font-bold text-xs flex-shrink-0">
+              ✓
+            </div>
+            <div>
+              <span class="font-bold text-emerald-900">Không cần Azure Key!</span>
+              <span class="text-emerald-700 ml-1 text-[11px]">
+                Toàn bộ các giọng Nam & Nữ AI trên đều được phát qua hạ tầng Edge Read Aloud miễn phí 100% với độ trễ thấp & chất lượng studio.
+              </span>
+            </div>
+          </div>
+          <span class="text-[11px] font-mono text-emerald-800 font-semibold px-2 py-0.5 bg-emerald-100 rounded-md border border-emerald-300">
+            Unlimited
+          </span>
+        </div>
+
+      </div>
+
+      <!-- 3. TÙY CHỌN DỰ PHÒNG NÂNG CAO (OPTIONAL AZURE KEY DÀNH CHO DOANH NGHIỆP) -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
+        <div class="flex items-center justify-between cursor-pointer select-none" onclick="toggleAdvancedAzure()">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span class="font-bold text-xs text-slate-700">Tùy chọn nâng cao: Azure Cognitive Key cá nhân (Không bắt buộc)</span>
+          </div>
+          <span id="chevronAdvanced" class="text-xs text-slate-400 font-bold transition-transform">▼</span>
+        </div>
+
+        <div id="advancedAzureContent" class="hidden pt-2 space-y-2 border-t border-slate-100 text-xs text-slate-500">
+          <p class="leading-relaxed text-[11px]">
+            Nếu bạn có tài khoản Azure riêng và muốn dùng đường truyền đám mây độc lập của riêng mình thay vì qua cổng Edge Read Aloud công cộng, bạn có thể dán Key tại đây:
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+            <input type="password" placeholder="Dán Azure API Key riêng (nếu có)..." class="sm:col-span-8 px-3 py-1.5 border border-slate-300 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            <input type="text" value="eastus" placeholder="Region" class="sm:col-span-2 px-3 py-1.5 border border-slate-300 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            <button class="sm:col-span-2 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-semibold hover:bg-black transition-all">Lưu Key</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer Toast Simulation -->
+    <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span>Đang áp dụng: <b id="footerVoiceText" class="text-slate-800 font-semibold">Yunxi (Giọng Nam - zh-CN-YunxiNeural)</b></span>
+      </div>
+      <div id="toastMessage" class="hidden px-3.5 py-1.5 bg-slate-900 text-white rounded-xl text-xs font-semibold shadow-xl flex items-center gap-2 animate-bounce">
+        <div class="flex items-center gap-1 h-3">
+          <div class="w-1 bg-white rounded wave-bar"></div>
+          <div class="w-1 bg-white rounded wave-bar"></div>
+          <div class="w-1 bg-white rounded wave-bar"></div>
+        </div>
+        <span id="toastText">Đang phát âm giọng Nam Yunxi...</span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentSampleText = '你好，很高兴认识你。';
+    let currentRate = 1.0;
+
+    function setSampleText(text) {
+      currentSampleText = text;
+      showToast(`📝 Đã chọn câu mẫu: "${text}"`);
+    }
+
+    function onRateChange(val) {
+      currentRate = parseFloat(val);
+      document.getElementById('rateLabel').innerText = `${currentRate.toFixed(2)}x`;
+    }
+
+    function getVoiceInfo(val) {
+      const voices = {
+        'zh-CN-YunxiNeural': { name: 'Yunxi', gender: 'Nam', tag: 'Giọng Nam (Yunxi)', desc: 'Thanh niên, truyền cảm' },
+        'zh-CN-YunjianNeural': { name: 'Yunjian', gender: 'Nam', tag: 'Giọng Nam (Yunjian)', desc: 'Phát thanh viên, trầm ấm' },
+        'zh-CN-YunyangNeural': { name: 'Yunyang', gender: 'Nam', tag: 'Giọng Nam (Yunyang)', desc: 'Tin tức, thời sự' },
+        'zh-CN-XiaoxiaoNeural': { name: 'Xiaoxiao', gender: 'Nữ', tag: 'Giọng Nữ (Xiaoxiao)', desc: 'Bắc Kinh ấm áp' },
+        'zh-CN-XiaoyiNeural': { name: 'Xiaoyi', gender: 'Nữ', tag: 'Giọng Nữ (Xiaoyi)', desc: 'Nhẹ nhàng, trong sáng' },
+        'google-female': { name: 'Google TTS', gender: 'Nữ', tag: 'Google TTS (Nữ)', desc: 'Chuẩn phổ thông' },
+        'youdao-female': { name: 'Youdao TTS', gender: 'Nữ', tag: 'Youdao TTS (Nữ)', desc: 'Từ điển Hán ngữ' }
+      };
+      return voices[val] || { name: val, gender: '', tag: val, desc: '' };
+    }
+
+    function onVoiceChange() {
+      const select = document.getElementById('voiceDropdown');
+      const val = select.value;
+      const info = getVoiceInfo(val);
+      
+      const badge = document.getElementById('badgeVoiceType');
+      badge.innerText = info.tag;
+      if (info.gender === 'Nam') {
+        badge.className = 'text-[11px] font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200';
+      } else {
+        badge.className = 'text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200';
+      }
+
+      document.getElementById('footerVoiceText').innerText = `${info.name} (${info.gender ? 'Giọng ' + info.gender : ''} - ${val})`;
+      showToast(`🎯 Đã chuyển sang: ${info.tag}`);
+    }
+
+    function playSampleVoice() {
+      const select = document.getElementById('voiceDropdown');
+      const val = select.value;
+      const info = getVoiceInfo(val);
+      const playBtnText = document.getElementById('playBtnText');
+      
+      playBtnText.innerText = 'Đang phát âm...';
+      showToast(`🔊 Đang phát: ${info.tag} (${currentRate}x)`);
+
+      // Giả lập phát âm thanh
+      let audioUrl = '';
+      if (val === 'youdao-female') {
+        audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(currentSampleText)}&le=zh`;
+      } else {
+        audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=zh-CN&client=tw-ob&q=${encodeURIComponent(currentSampleText)}`;
+      }
+
+      const audio = new Audio();
+      audio.referrerPolicy = 'no-referrer';
+      audio.playbackRate = currentRate;
+      audio.src = audioUrl;
+
+      audio.onended = () => {
+        playBtnText.innerText = 'Nghe thử giọng';
+      };
+      audio.onerror = () => {
+        playBtnText.innerText = 'Nghe thử giọng';
+      };
+      audio.play().catch(() => {
+        playBtnText.innerText = 'Nghe thử giọng';
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastMessage');
+      document.getElementById('toastText').innerText = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3500);
+    }
+
+    function toggleAdvancedAzure() {
+      const content = document.getElementById('advancedAzureContent');
+      const chevron = document.getElementById('chevronAdvanced');
+      if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        chevron.style.transform = 'rotate(180deg)';
+      } else {
+        content.classList.add('hidden');
+        chevron.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    onVoiceChange();
+  </script>
+</body>
+</html>

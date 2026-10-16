@@ -1,7 +1,82 @@
+import { VoiceDefinition } from './types';
+
 export function sanitizeAudioText(text: string): string {
   if (!text) return '';
   return text.trim();
 }
+
+export const SUPPORTED_TTS_VOICES: VoiceDefinition[] = [
+  // Giọng Nam Neural Microsoft
+  {
+    id: 'zh-CN-YunxiNeural',
+    name: 'Yunxi (云希) - Nam thanh niên',
+    gender: 'male',
+    desc: 'Ấm áp, tự nhiên, sinh động, chuẩn Bắc Kinh',
+    group: 'neural_male',
+    recommended: true,
+  },
+  {
+    id: 'zh-CN-YunjianNeural',
+    name: 'Yunjian (云健) - Nam trưởng thành',
+    gender: 'male',
+    desc: 'Dõng dạc, truyền cảm, chuẩn phát thanh viên',
+    group: 'neural_male',
+  },
+  {
+    id: 'zh-CN-YunyangNeural',
+    name: 'Yunyang (云扬) - Nam thời sự',
+    gender: 'male',
+    desc: 'Chuyên nghiệp, rõ ràng, phong cách tin tức',
+    group: 'neural_male',
+  },
+
+  // Giọng Nữ Neural Microsoft
+  {
+    id: 'zh-CN-XiaoxiaoNeural',
+    name: 'Xiaoxiao (晓晓) - Nữ tiêu chuẩn',
+    gender: 'female',
+    desc: 'Tự nhiên, dịu dàng, phổ thông chuẩn quốc gia',
+    group: 'neural_female',
+    recommended: true,
+  },
+  {
+    id: 'zh-CN-XiaoyiNeural',
+    name: 'Xiaoyi (晓伊) - Nữ trẻ trung',
+    gender: 'female',
+    desc: 'Trong trẻo, biểu cảm phong phú, sống động',
+    group: 'neural_female',
+  },
+  {
+    id: 'zh-CN-liaoning-XiaobeiNeural',
+    name: 'Xiaobei (晓北) - Nữ Đông Bắc',
+    gender: 'female',
+    desc: 'Giọng địa phương Đông Bắc, tự nhiên, thân thiện',
+    group: 'neural_female',
+  },
+  {
+    id: 'zh-HK-HiuMaanNeural',
+    name: 'HiuMaan (晓曼) - Nữ Quảng Đông',
+    gender: 'female',
+    desc: 'Tiếng Quảng Đông chuẩn (Cantonese, Hồng Kông)',
+    group: 'neural_female',
+  },
+
+  // Dự phòng trực tuyến miễn phí
+  {
+    id: 'google-female',
+    name: 'Google Translate Native TTS',
+    gender: 'female',
+    desc: 'Giọng Nữ phổ thông chuẩn (Máy chủ Google Web)',
+    group: 'fallback',
+  },
+  {
+    id: 'youdao-female',
+    name: 'Youdao Dict TTS',
+    gender: 'female',
+    desc: 'Giọng Nữ từ vựng Hán ngữ chuẩn Youdao',
+    group: 'fallback',
+  },
+];
 
 /**
  * URL phát âm tiếng Trung chuẩn Bắc Kinh chất lượng cao từ Google Translate
@@ -44,9 +119,9 @@ export function getBaiduTtsAudioUrl(text: string): string {
 /**
  * Tạo payload SSML cho Microsoft Azure Speech Service (Neural Voice: Xiaoxiao, Yunxi, v.v.)
  */
-export function buildAzureSsml(text: string, voice = 'zh-CN-XiaoxiaoNeural'): string {
+export function buildAzureSsml(text: string, voice = 'zh-CN-XiaoxiaoNeural', rate = '0%'): string {
   const clean = sanitizeAudioText(text);
-  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="zh-CN"><voice name="${voice}">${clean}</voice></speak>`;
+  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="zh-CN"><voice name="${voice}"><prosody rate="${rate}">${clean}</prosody></voice></speak>`;
 }
 
 export function isSpeechSynthesisSupported(): boolean {

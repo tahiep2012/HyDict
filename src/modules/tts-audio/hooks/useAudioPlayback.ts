@@ -10,6 +10,17 @@ import {
 } from '../rules';
 import { AudioPlaybackOptions, AzureSpeechConfig } from '../types';
 
+function base64ToBlobUrl(base64: string, mimeType = 'audio/mpeg'): string {
+  const byteCharacters = atob(base64);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  const blob = new Blob([byteArray], { type: mimeType });
+  return URL.createObjectURL(blob);
+}
+
 export function useAudioPlayback() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentText, setCurrentText] = useState<string | null>(null);
@@ -75,35 +86,66 @@ export function useAudioPlayback() {
         options?.onError?.(err);
       };
 
+      // Xác định giọng đọc và tốc độ (từ options hoặc từ cài đặt đã lưu trong localStorage)
+      let selectedVoice = options?.voice;
+      let selectedRate = options?.rate;
+      try {
+        const savedSettings = localStorage.getItem('hanzii_app_settings');
+        if (savedSettings) {
+          const parsed = JSON.parse(savedSettings);
+          if (!selectedVoice && parsed.ttsVoice) {
+            selectedVoice = parsed.ttsVoice;
+          }
+          if (selectedRate === undefined && parsed.ttsSpeed) {
+            selectedRate = parsed.ttsSpeed;
+          }
+        }
+      } catch {
+        // ignore
+      }
+
+      // Mặc định giọng nam Yunxi nếu chưa cấu hình
+      const voice = selectedVoice || 'zh-CN-YunxiNeural';
+      const rate = selectedRate || 1.0;
+
       // Chuẩn bị danh sách URL phát âm dự phòng đa tầng (Multi-tier fallback)
       const candidateUrls: string[] = [];
 
-      // Tầng 1: Google Translate TTS Native (Chất lượng cao, hỗ trợ cả câu dài và từ đơn)
-      const googleUrl = getGoogleTtsAudioUrl(cleanText);
-      if (googleUrl) candidateUrls.push(googleUrl);
-
-      // Tầng 2: Nếu là từ đơn hoặc cụm từ ngắn (<= 12 ký tự): Youdao Dict TTS là lựa chọn hoàn hảo
-      if (cleanText.length <= 12) {
+      if (voice === 'youdao-female') {
         const youdaoUrl = getYoudaoTtsAudioUrl(cleanText);
         if (youdaoUrl) candidateUrls.push(youdaoUrl);
+        const googleUrl = getGoogleTtsAudioUrl(cleanText);
+        if (googleUrl) candidateUrls.push(googleUrl);
+      } else {
+        // Mặc định: Google Translate TTS Native
+        const googleUrl = getGoogleTtsAudioUrl(cleanText);
+        if (googleUrl) candidateUrls.push(googleUrl);
+
+        if (cleanText.length <= 12) {
+          const youdaoUrl = getYoudaoTtsAudioUrl(cleanText);
+          if (youdaoUrl) candidateUrls.push(youdaoUrl);
+        }
+
+        const gtxUrl = getGoogleGtxTtsAudioUrl(cleanText);
+        if (gtxUrl) candidateUrls.push(gtxUrl);
+
+        const baiduUrl = getBaiduTtsAudioUrl(cleanText);
+        if (baiduUrl) candidateUrls.push(baiduUrl);
       }
 
-      // Tầng 3: Google APIs GTX (Dự phòng cho câu dài)
-      const gtxUrl = getGoogleGtxTtsAudioUrl(cleanText);
-      if (gtxUrl) candidateUrls.push(gtxUrl);
+      // Nếu người dùng chọn trực tiếp nguồn fallback (không phải neural)
+      if (voice === 'google-female' || voice === 'youdao-female') {
+        playCandidateStreams(audioRef, candidateUrls, 0, cleanText, handleEnded, handleFinalError);
+        return;
+      }
 
-      // Tầng 4: Baidu Fanyi TTS (Dự phòng tiếp theo)
-      const baiduUrl = getBaiduTtsAudioUrl(cleanText);
-      if (baiduUrl) candidateUrls.push(baiduUrl);
-
-      // 2. Kiểm tra nếu có Azure Speech Key được lưu trong localStorage
+      // TẦNG 1: Microsoft Azure Speech (Nếu người dùng nhập Azure API Key trả phí/free cá nhân)
       try {
         const rawAzure = localStorage.getItem('hanzii_azure_speech');
         if (rawAzure) {
           const azureConfig: AzureSpeechConfig = JSON.parse(rawAzure);
           if (azureConfig.apiKey && azureConfig.region) {
             try {
-              const voice = options?.voice || azureConfig.voiceName || 'zh-CN-XiaoxiaoNeural';
               const ssml = buildAzureSsml(cleanText, voice);
               const res = await fetch(
                 `https://${azureConfig.region}.tts.speech.microsoft.com/cognitiveservices/v1`,
@@ -137,7 +179,7 @@ export function useAudioPlayback() {
                 return;
               }
             } catch {
-              // Nếu Azure lỗi kết nối, tự động chuyển tiếp sang luồng dự phòng
+              // Bỏ qua lỗi Azure, chuyển tiếp xuống Edge Read Aloud
             }
           }
         }
@@ -145,7 +187,37 @@ export function useAudioPlayback() {
         // bỏ qua lỗi đọc localStorage
       }
 
-      // 3. Tầng Chính & Dự phòng trực tuyến không cần API Key
+      // TẦNG 2: Microsoft Edge Read Aloud Neural Voice (MIỄN PHÍ KHÔNG CẦN KEY - Tự động qua Rust Backend)
+      try {
+        const { invoke } = await import('@tauri-apps/api/core');
+        const res = await invoke<{ audio_base64: string; voice: string }>('synthesize_speech', {
+          text: cleanText,
+          voice,
+          rate,
+        });
+
+        if (res && res.audio_base64) {
+          const blobUrl = base64ToBlobUrl(res.audio_base64);
+          const audio = new Audio(blobUrl);
+          audioRef.current = audio;
+
+          audio.onended = () => {
+            URL.revokeObjectURL(blobUrl);
+            handleEnded();
+          };
+          audio.onerror = () => {
+            URL.revokeObjectURL(blobUrl);
+            playCandidateStreams(audioRef, candidateUrls, 0, cleanText, handleEnded, handleFinalError);
+          };
+          await audio.play();
+          return;
+        }
+      } catch (edgeErr) {
+        // Nếu chạy ở môi trường web/test không có Tauri hoặc mạng lỗi, tự động hạ cấp xuống Tầng 3
+        console.warn('Edge TTS unavailable or failed, falling back to web streams:', edgeErr);
+      }
+
+      // TẦNG 3: Nguồn trực tuyến miễn phí (Google Translate TTS Native / Youdao / Baidu)
       playCandidateStreams(audioRef, candidateUrls, 0, cleanText, handleEnded, handleFinalError);
     },
     [stopAudio]

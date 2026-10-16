@@ -49,9 +49,25 @@ mod single_instance {
     }
 }
 
+#[cfg(target_os = "windows")]
+mod win_shell {
+    #[link(name = "shell32")]
+    extern "system" {
+        pub fn SetCurrentProcessExplicitAppUserModelID(AppID: *const u16) -> i32;
+    }
+}
+
 fn main() {
     #[cfg(target_os = "windows")]
     {
+        // 1. Đăng ký AppUserModelID rõ ràng cho Windows Shell & Taskbar
+        // BẮT BUỘC: Giúp Windows Taskbar hiển thị chính xác biểu tượng (Icon) của HyDict
+        // thay vì gán vào nhóm tiến trình mặc định dẫn đến lỗi hiển thị icon tờ giấy trắng.
+        unsafe {
+            let app_id: Vec<u16> = "com.hydict.desktop\0".encode_utf16().collect();
+            let _ = win_shell::SetCurrentProcessExplicitAppUserModelID(app_id.as_ptr());
+        }
+
         if !single_instance::ensure_single_instance() {
             // Đã có phiên bản HyDict đang chạy trong khay hệ thống, kích hoạt cửa sổ và thoát an toàn
             return;
