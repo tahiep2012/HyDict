@@ -464,6 +464,8 @@ assert(libRsContent.includes('WindowEvent::Focused(false)'), '[Rust Backend] B�
 assert(libRsContent.includes('TrayIconBuilder'), '[System Tray] Khởi tạo TrayIconBuilder cho thanh tác vụ Windows Taskbar');
 assert(libRsContent.includes('main-tray'), '[System Tray] ID khay hệ thống main-tray được cấu hình');
 assert(libRsContent.includes('CloseRequested') && libRsContent.includes('prevent_close'), '[System Tray] Đóng cửa sổ chính ẩn xuống Tray thay vì tắt app (CloseRequested -> prevent_close)');
+assert(libRsContent.includes('IS_EXITING'), '[Clean Shutdown] Cờ IS_EXITING ngăn chặn prevent_close khi thoát ứng dụng');
+assert(libRsContent.includes('perform_graceful_exit') && libRsContent.includes('win.hide()'), '[Clean Shutdown] Hàm perform_graceful_exit lập tức ẩn toàn bộ cửa sổ tránh khung xám');
 assert(libRsContent.includes('exit_app') && libRsContent.includes('std::process::exit(0)'), '[System Tray] Menu Thoát HyDict gọi std::process::exit(0) để thoát hoàn toàn ứng dụng');
 assert(!libRsContent.includes('0x1B'), '[Clipboard Copy] Tuyệt đối không gửi VK_ESCAPE (0x1B) để tránh hủy bôi đen chữ trên Anki/Web');
 assert(libRsContent.includes('EmptyClipboard') && libRsContent.includes('clear_clipboard'), '[Clipboard Copy] Xóa sạch clipboard trước khi copy tránh đọc lại từ cũ');

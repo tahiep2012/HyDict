@@ -20,6 +20,7 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 static HUD_PINNED: AtomicBool = AtomicBool::new(false);
 static LAST_HUD_SHOW: Mutex<Option<Instant>> = Mutex::new(None);
+static IS_EXITING: AtomicBool = AtomicBool::new(false);
 
 #[cfg(target_os = "windows")]
 pub mod win_clip {
@@ -262,10 +263,23 @@ fn open_main_window(app: tauri::AppHandle, word: Option<String>) {
     }
 }
 
-#[tauri::command]
-fn exit_app() {
+fn perform_graceful_exit(app: &tauri::AppHandle) {
+    IS_EXITING.store(true, Ordering::SeqCst);
     window_state::flush_window_state();
-    std::process::exit(0);
+    for (_, win) in app.webview_windows() {
+        let _ = win.hide();
+    }
+    let app_handle = app.clone();
+    app_handle.exit(0);
+    std::thread::spawn(|| {
+        std::thread::sleep(std::time::Duration::from_millis(300));
+        std::process::exit(0);
+    });
+}
+
+#[tauri::command]
+fn exit_app(app: tauri::AppHandle) {
+    perform_graceful_exit(&app);
 }
 
 #[tauri::command]
@@ -477,12 +491,15 @@ pub fn run() {
                             }
                         }
                         "quit" => {
-                            std::process::exit(0);
+                            perform_graceful_exit(app);
                         }
                         _ => {}
                     }
                 })
                 .on_tray_icon_event(|tray, event| {
+                    if IS_EXITING.load(Ordering::SeqCst) {
+                        return;
+                    }
                     match event {
                         TrayIconEvent::Click {
                             button: MouseButton::Left,
@@ -603,6 +620,9 @@ pub fn run() {
                     }
                 }
                 tauri::WindowEvent::CloseRequested { api, .. } => {
+                    if IS_EXITING.load(Ordering::SeqCst) {
+                        return;
+                    }
                     // Khi người dùng bấm nút 'X' ở cửa sổ chính, lưu trạng thái và ẩn xuống khay hệ thống (System Tray)
                     if window.label() == "main" {
                         api.prevent_close();
