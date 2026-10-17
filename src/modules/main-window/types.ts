@@ -14,6 +14,7 @@ export interface AppSettings {
   ttsSpeed?: number;
   ttsAutoplay: boolean;
   autoStartWithWindows: boolean;
+  closeToTray?: boolean;
 }
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
@@ -28,4 +29,5 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   ttsSpeed: 1.0,
   ttsAutoplay: true,
   autoStartWithWindows: true,
+  closeToTray: false,
 };

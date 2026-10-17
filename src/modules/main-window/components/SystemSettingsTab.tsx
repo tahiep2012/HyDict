@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Button, Switch, Select, Input } from '@/components/ui';
 import { AppSettings } from '../types';
 import { useAudioPlayback, AzureSpeechConfig, SUPPORTED_TTS_VOICES } from '@/modules/tts-audio';
-import { Volume2, Power, Mic, Sparkles, Key, CheckCircle2, Sliders, Play, RotateCcw } from 'lucide-react';
+import { Volume2, Power, Mic, Sparkles, Key, CheckCircle2, Sliders, Play, RotateCcw, XCircle } from 'lucide-react';
 
 export interface SystemSettingsTabProps {
   settings: AppSettings;
@@ -358,6 +358,37 @@ export const SystemSettingsTab: React.FC<SystemSettingsTabProps> = ({
                 checked
                   ? '✅ Đã bật tự khởi động cùng Windows'
                   : 'ℹ️ Đã tắt tự khởi động cùng Windows'
+              );
+            }}
+            color="blue"
+          />
+        </Card>
+
+        {/* Close button action: Exit vs Minimize to tray */}
+        <Card variant="default" rounded="2xl" className="p-4 flex items-center justify-between border border-slate-200">
+          <div className="space-y-1">
+            <div className="font-bold text-sm text-slate-800 flex items-center gap-2">
+              <XCircle className="w-4 h-4 text-rose-500" />
+              Thu nhỏ xuống khay hệ thống khi bấm dấu 'X'
+            </div>
+            <div className="text-slate-500">
+              Mặc định tắt: Bấm dấu 'X' sẽ thoát hoàn toàn phần mềm. Bật lên nếu muốn ứng dụng chạy ngầm dưới khay hệ thống để tiếp tục tra từ nhanh.
+            </div>
+          </div>
+
+          <Switch
+            checked={settings.closeToTray ?? false}
+            onChange={(checked) => {
+              onUpdateSetting('closeToTray', checked);
+              if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
+                import('@tauri-apps/api/core')
+                  .then(({ invoke }) => invoke('set_close_to_tray', { enabled: checked }))
+                  .catch(() => {});
+              }
+              onShowToast(
+                checked
+                  ? 'ℹ️ Đã bật: Bấm dấu X sẽ ẩn xuống khay hệ thống'
+                  : '✅ Đã tắt: Bấm dấu X sẽ thoát hoàn toàn HyDict'
               );
             }}
             color="blue"

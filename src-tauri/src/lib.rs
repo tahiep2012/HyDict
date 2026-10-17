@@ -21,6 +21,7 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 static HUD_PINNED: AtomicBool = AtomicBool::new(false);
 static LAST_HUD_SHOW: Mutex<Option<Instant>> = Mutex::new(None);
 static IS_EXITING: AtomicBool = AtomicBool::new(false);
+static CLOSE_TO_TRAY: AtomicBool = AtomicBool::new(false);
 
 #[cfg(target_os = "windows")]
 pub mod win_clip {
@@ -280,6 +281,11 @@ fn perform_graceful_exit(app: &tauri::AppHandle) {
 #[tauri::command]
 fn exit_app(app: tauri::AppHandle) {
     perform_graceful_exit(&app);
+}
+
+#[tauri::command]
+fn set_close_to_tray(enabled: bool) {
+    CLOSE_TO_TRAY.store(enabled, Ordering::SeqCst);
 }
 
 #[tauri::command]
@@ -623,11 +629,17 @@ pub fn run() {
                     if IS_EXITING.load(Ordering::SeqCst) {
                         return;
                     }
-                    // Khi người dùng bấm nút 'X' ở cửa sổ chính, lưu trạng thái và ẩn xuống khay hệ thống (System Tray)
                     if window.label() == "main" {
-                        api.prevent_close();
-                        window_state::flush_window_state();
-                        let _ = window.hide();
+                        let should_close_to_tray = CLOSE_TO_TRAY.load(Ordering::SeqCst);
+                        if should_close_to_tray {
+                            // Người dùng đã bật tùy chọn thu nhỏ xuống khay hệ thống (chạy ngầm)
+                            api.prevent_close();
+                            window_state::flush_window_state();
+                            let _ = window.hide();
+                        } else {
+                            // Mặc định: Thoát hoàn toàn ứng dụng sạch sẽ khi bấm dấu 'X'
+                            perform_graceful_exit(window.app_handle());
+                        }
                     }
                 }
                 tauri::WindowEvent::Destroyed => {
@@ -660,6 +672,7 @@ pub fn run() {
             set_hud_pinned,
             open_main_window,
             exit_app,
+            set_close_to_tray,
             open_snipper_window,
             hide_snipper_window,
             execute_screen_ocr,

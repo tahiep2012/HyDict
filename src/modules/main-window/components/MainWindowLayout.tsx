@@ -6,7 +6,7 @@ import { HotkeyCaptureTab } from './HotkeyCaptureTab';
 import { AnkiConfigTab } from './AnkiConfigTab';
 import { SystemSettingsTab } from './SystemSettingsTab';
 import { SystemTrayModal } from './SystemTrayModal';
-import { BookOpen, Zap, Settings, Layers, ExternalLink, Sparkles, Bookmark, Crop } from 'lucide-react';
+import { BookOpen, Zap, Settings, Layers, ExternalLink, Sparkles, Bookmark, Crop, Power } from 'lucide-react';
 import { NotebookTab } from '@/modules/notebook';
 
 export interface MainWindowLayoutProps {
@@ -151,6 +151,22 @@ export const MainWindowLayout: React.FC<MainWindowLayoutProps> = ({
               >
                 <Crop className="w-3 h-3 mr-1 text-emerald-600" />
                 Chụp OCR màn hình
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
+                    import('@tauri-apps/api/core')
+                      .then(({ invoke }) => invoke('exit_app'))
+                      .catch(() => {});
+                  }
+                  onShowToast('🚪 Đang đóng và thoát HyDict...');
+                }}
+                className="w-full text-center text-[11px] py-1 h-auto text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200/60"
+              >
+                <Power className="w-3 h-3 mr-1 text-rose-500" />
+                Thoát HyDict
               </Button>
             </div>
           </div>

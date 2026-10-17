@@ -362,6 +362,17 @@ const MainWindowApp: React.FC = () => {
     };
   }, []);
 
+  // Đồng bộ cài đặt closeToTray sang Rust Backend
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
+      import('@tauri-apps/api/core')
+        .then(({ invoke }) => {
+          invoke('set_close_to_tray', { enabled: settings.closeToTray ?? false });
+        })
+        .catch(() => {});
+    }
+  }, [settings.closeToTray]);
+
   const handleOpenQuickHud = () => {
     if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
       import('@tauri-apps/api/core')
