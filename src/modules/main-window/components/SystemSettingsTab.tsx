@@ -368,16 +368,16 @@ export const SystemSettingsTab: React.FC<SystemSettingsTabProps> = ({
         <Card variant="default" rounded="2xl" className="p-4 flex items-center justify-between border border-slate-200">
           <div className="space-y-1">
             <div className="font-bold text-sm text-slate-800 flex items-center gap-2">
-              <XCircle className="w-4 h-4 text-rose-500" />
-              Thu nhỏ xuống khay hệ thống khi bấm dấu 'X'
+              <XCircle className="w-4 h-4 text-blue-600" />
+              Chạy ngầm dưới khay hệ thống khi bấm dấu 'X'
             </div>
             <div className="text-slate-500">
-              Mặc định tắt: Bấm dấu 'X' sẽ thoát hoàn toàn phần mềm. Bật lên nếu muốn ứng dụng chạy ngầm dưới khay hệ thống để tiếp tục tra từ nhanh.
+              Mặc định bật: Khi bấm nút 'X', phần mềm sẽ chuyển sang chạy ngầm dưới khay hệ thống (Tray) để tiếp tục phục vụ tra từ phím tắt. Tắt đi nếu muốn bấm 'X' là thoát hẳn ứng dụng.
             </div>
           </div>
 
           <Switch
-            checked={settings.closeToTray ?? false}
+            checked={settings.closeToTray ?? true}
             onChange={(checked) => {
               onUpdateSetting('closeToTray', checked);
               if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
@@ -387,7 +387,7 @@ export const SystemSettingsTab: React.FC<SystemSettingsTabProps> = ({
               }
               onShowToast(
                 checked
-                  ? 'ℹ️ Đã bật: Bấm dấu X sẽ ẩn xuống khay hệ thống'
+                  ? 'ℹ️ Đã bật: Bấm dấu X sẽ chạy ngầm dưới khay hệ thống (Tray)'
                   : '✅ Đã tắt: Bấm dấu X sẽ thoát hoàn toàn HyDict'
               );
             }}

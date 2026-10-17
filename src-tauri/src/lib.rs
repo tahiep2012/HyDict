@@ -21,7 +21,7 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 static HUD_PINNED: AtomicBool = AtomicBool::new(false);
 static LAST_HUD_SHOW: Mutex<Option<Instant>> = Mutex::new(None);
 static IS_EXITING: AtomicBool = AtomicBool::new(false);
-static CLOSE_TO_TRAY: AtomicBool = AtomicBool::new(false);
+static CLOSE_TO_TRAY: AtomicBool = AtomicBool::new(true);
 
 #[cfg(target_os = "windows")]
 pub mod win_clip {

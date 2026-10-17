@@ -29,5 +29,5 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   ttsSpeed: 1.0,
   ttsAutoplay: true,
   autoStartWithWindows: true,
-  closeToTray: false,
+  closeToTray: true,
 };

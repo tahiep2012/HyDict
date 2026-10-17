@@ -367,7 +367,7 @@ const MainWindowApp: React.FC = () => {
     if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
       import('@tauri-apps/api/core')
         .then(({ invoke }) => {
-          invoke('set_close_to_tray', { enabled: settings.closeToTray ?? false });
+          invoke('set_close_to_tray', { enabled: settings.closeToTray ?? true });
         })
         .catch(() => {});
     }
